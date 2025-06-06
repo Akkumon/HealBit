@@ -13,10 +13,14 @@ export interface JournalEntry {
   date: string;
   promptId: string;
   audioUrl?: string;
+  audioBlob?: Blob;
   transcript?: string;
+  transcriptConfidence?: number;
   mood: MoodType;
   emotions: string[];
   duration: number;
+  processingComplete: boolean;
+  hasAudio: boolean;
 }
 
 export interface Affirmation {
