@@ -107,6 +107,7 @@
 
   body {
     @apply bg-background text-foreground font-inter;
+    overscroll-behavior: none; /* Prevent scroll jank on mobile */
   }
 }
 
@@ -121,10 +122,42 @@
   50% { opacity: 0.7; }
 }
 
+@keyframes fade-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  0% { transform: scale(0.95); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .breathe {
   animation: breathe 3s ease-in-out infinite;
 }
 
 .gentle-pulse {
   animation: gentle-pulse 2s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* Mobile optimizations */
+@supports (padding: max(0px)) {
+  .safe-area-inset {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+/* Touch-friendly buttons */
+button, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
 }
