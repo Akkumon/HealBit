@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -18,6 +19,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				inter: ['Inter', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -52,6 +56,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// HealBit emotional colors
+				joy: 'hsl(var(--joy))',
+				calm: 'hsl(var(--calm))',
+				hope: 'hsl(var(--hope))',
+				sadness: 'hsl(var(--sadness))',
+				anger: 'hsl(var(--anger))',
+				neutral: 'hsl(var(--neutral))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
