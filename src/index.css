@@ -138,6 +138,33 @@
   100% { transform: scale(1.4); opacity: 0; }
 }
 
+/* Onboarding animations */
+@keyframes fade-slide-in {
+  0% { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes mic-pulse {
+  0% { 
+    transform: scale(1); 
+    opacity: 0.8; 
+  }
+  50% { 
+    transform: scale(1.1); 
+    opacity: 0.5; 
+  }
+  100% { 
+    transform: scale(1.2); 
+    opacity: 0; 
+  }
+}
+
 .breathe {
   animation: breathe 3s ease-in-out infinite;
 }
@@ -158,6 +185,14 @@
   animation: recording-pulse 1.5s ease-out infinite;
 }
 
+.animate-fade-slide-in {
+  animation: fade-slide-in 0.4s ease-out;
+}
+
+.mic-pulse {
+  animation: mic-pulse 1.5s ease-out infinite;
+}
+
 /* Mobile optimizations */
 @supports (padding: max(0px)) {
   .safe-area-inset {
@@ -170,4 +205,17 @@
 button, [role="button"] {
   min-height: 44px;
   min-width: 44px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .breathe,
+  .gentle-pulse,
+  .recording-pulse,
+  .mic-pulse,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-fade-slide-in {
+    animation: none;
+  }
 }
