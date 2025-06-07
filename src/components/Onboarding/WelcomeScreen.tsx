@@ -2,7 +2,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
-import { OnboardingHookReturn } from '@/hooks/useOnboarding';
 
 interface WelcomeScreenProps {
   onboarding: ReturnType<typeof import('@/hooks/useOnboarding').useOnboarding>;
