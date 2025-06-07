@@ -6,13 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Calendar, Zap } from 'lucide-react';
 import PageContainer from '@/components/PageContainer';
 import BottomNavigation from '@/components/BottomNavigation';
+import SentimentMeter from '@/components/SentimentMeter';
+import WeatherAnimation from '@/components/WeatherAnimation';
 import { HealingProgress, MoodType } from '@/types';
+import { useSentimentAnalysis } from '@/hooks/useSentimentAnalysis';
 
 const HealingTracker = () => {
   const navigate = useNavigate();
   const [progress, setProgress] = useState<HealingProgress[]>([]);
   const [totalEntries, setTotalEntries] = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
+  const { sentimentData, moodToEmotionScale } = useSentimentAnalysis();
 
   useEffect(() => {
     // Load journal entries and calculate progress
@@ -61,18 +65,6 @@ const HealingTracker = () => {
     setCurrentStreak(streak);
   }, []);
 
-  const getWeatherIcon = (mood: MoodType) => {
-    const icons = {
-      joy: '☀️',
-      calm: '🌤️',
-      hope: '⛅',
-      neutral: '☁️',
-      sadness: '🌧️',
-      anger: '⛈️'
-    };
-    return icons[mood] || '☁️';
-  };
-
   const getWeatherDescription = (mood: MoodType) => {
     const descriptions = {
       joy: 'Sunny & Bright',
@@ -93,6 +85,11 @@ const HealingTracker = () => {
         </Button>
         <h1 className="text-xl font-semibold text-foreground">Healing Weather</h1>
         <div className="w-10" />
+      </div>
+
+      {/* Sentiment Overview */}
+      <div className="mb-6">
+        <SentimentMeter sentimentData={sentimentData} />
       </div>
 
       {/* Stats Overview */}
@@ -117,10 +114,10 @@ const HealingTracker = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Calendar className="w-5 h-5 mr-2" />
-            Your Emotional Weather
+            Your Weather History
           </CardTitle>
           <CardDescription>
-            See how your inner climate has been changing
+            See how your emotional climate has been changing
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -133,7 +130,10 @@ const HealingTracker = () => {
               {progress.slice(-7).reverse().map((day, index) => (
                 <div key={day.date} className="flex items-center justify-between p-3 rounded-lg bg-background/50">
                   <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{getWeatherIcon(day.mood)}</span>
+                    <WeatherAnimation 
+                      emotionScale={moodToEmotionScale(day.mood)} 
+                      size="sm" 
+                    />
                     <div>
                       <p className="font-medium text-foreground">
                         {getWeatherDescription(day.mood)}

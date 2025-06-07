@@ -6,11 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Settings, Heart, Calendar, TrendingUp } from 'lucide-react';
 import PageContainer from '@/components/PageContainer';
 import BottomNavigation from '@/components/BottomNavigation';
-import HealingAvatar from '@/components/HealingAvatar';
+import AvatarRenderer from '@/components/AvatarRenderer';
 import { MoodType, UserProfile } from '@/types';
+import { useAvatarEvolution } from '@/hooks/useAvatarEvolution';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const { evolution } = useAvatarEvolution();
   const [profile, setProfile] = useState<UserProfile>({
     name: '',
     avatar: {
@@ -86,7 +88,12 @@ const ProfilePage = () => {
       {/* Avatar & Name */}
       <Card className="mb-6 bg-white/70 backdrop-blur-sm text-center">
         <CardContent className="pt-6 space-y-4">
-          <HealingAvatar mood={avatarMood} size="lg" className="mx-auto" />
+          <AvatarRenderer 
+            mood={avatarMood} 
+            evolution={evolution}
+            size="lg" 
+            className="mx-auto" 
+          />
           
           <div>
             <input
@@ -100,6 +107,22 @@ const ProfilePage = () => {
             <p className="text-sm text-muted-foreground mt-1">
               Healing since {new Date(profile.joinDate).toLocaleDateString()}
             </p>
+          </div>
+
+          {/* Evolution Stats */}
+          <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-primary">
+                {Math.round(evolution.complexity * 100)}%
+              </div>
+              <p className="text-muted-foreground">Growth</p>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-accent-foreground">
+                {Math.round(evolution.glowIntensity * 100)}%
+              </div>
+              <p className="text-muted-foreground">Consistency</p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -171,23 +194,27 @@ const ProfilePage = () => {
         </CardContent>
       </Card>
 
-      {/* Avatar Customization */}
+      {/* Avatar Mood Selector */}
       <Card className="mb-6 bg-white/70 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg">Avatar Mood</CardTitle>
           <CardDescription>How is your avatar feeling today?</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center space-x-3">
+          <div className="flex justify-center space-x-3 flex-wrap gap-2">
             {(['joy', 'calm', 'hope', 'neutral', 'sadness'] as const).map((mood) => (
               <button
                 key={mood}
                 onClick={() => setAvatarMood(mood)}
-                className={`w-12 h-12 rounded-full transition-all duration-200 ${
+                className={`p-2 rounded-full transition-all duration-200 ${
                   avatarMood === mood ? 'scale-110 ring-2 ring-primary ring-offset-2' : 'hover:scale-105'
                 }`}
               >
-                <HealingAvatar mood={mood} size="sm" />
+                <AvatarRenderer 
+                  mood={mood} 
+                  evolution={evolution}
+                  size="sm" 
+                />
               </button>
             ))}
           </div>

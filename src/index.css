@@ -138,6 +138,38 @@
   100% { transform: scale(1.4); opacity: 0; }
 }
 
+/* Weather Animations */
+@keyframes storm-flash {
+  0%, 90%, 100% { opacity: 1; }
+  5%, 10% { opacity: 0.3; }
+}
+
+@keyframes rain-drops {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+@keyframes cloud-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+@keyframes sun-peek {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes sun-rays {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes sun-glow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.1); }
+}
+
 /* Onboarding animations */
 @keyframes fade-slide-in {
   0% { 
@@ -193,6 +225,45 @@
   animation: mic-pulse 1.5s ease-out infinite;
 }
 
+/* Weather Animation Classes */
+.weather-icon[data-animation="storm-flash"] {
+  animation: storm-flash 2s infinite;
+}
+
+.storm-lightning {
+  background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.8) 50%, transparent 60%);
+  animation: storm-flash 1.5s infinite;
+}
+
+.rain-drop {
+  animation: rain-drops 1s infinite linear;
+}
+
+.rain-drop.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.rain-drop.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.weather-icon[data-animation="cloud-drift"] {
+  animation: cloud-drift 4s ease-in-out infinite;
+}
+
+.weather-icon[data-animation="sun-peek"] {
+  animation: sun-peek 3s ease-in-out infinite;
+}
+
+.weather-icon[data-animation="sun-rays"] {
+  animation: sun-rays 8s linear infinite;
+}
+
+.sun-glow {
+  background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, transparent 70%);
+  animation: sun-glow 3s ease-in-out infinite;
+}
+
 /* Mobile optimizations */
 @supports (padding: max(0px)) {
   .safe-area-inset {
@@ -215,7 +286,11 @@ button, [role="button"] {
   .mic-pulse,
   .animate-fade-in,
   .animate-scale-in,
-  .animate-fade-slide-in {
+  .animate-fade-slide-in,
+  .weather-icon,
+  .storm-lightning,
+  .rain-drop,
+  .sun-glow {
     animation: none;
   }
 }
