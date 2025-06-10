@@ -72,8 +72,8 @@ const App = () => {
           <Routes>
             {!isOnboardingComplete ? (
               <>
-                <Route path="/onboarding" element={<Onboarding />} />
-                <Route path="*" element={<Navigate to="/onboarding" replace />} />
+                <Route path="/onboarding\" element={<Onboarding />} />
+                <Route path="*" element={<Navigate to="/onboarding\" replace />} />
               </>
             ) : (
               <>
@@ -84,7 +84,7 @@ const App = () => {
                 <Route path="/tracker" element={<HealingTracker />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/onboarding" element={<Navigate to="/" replace />} />
+                <Route path="/onboarding" element={<Navigate to="/\" replace />} />
                 <Route path="*" element={<NotFound />} />
               </>
             )}

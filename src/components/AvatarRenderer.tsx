@@ -146,7 +146,7 @@ const AvatarRenderer: React.FC<AvatarRendererProps> = ({
         {/* Eyes - simple dots that get more detailed with complexity */}
         {!hasDetails ? (
           <>
-            <circle cx="45" cy="32" r="2" fill={isDark ? '#F3F4F6' : 'white'} opacity={0.8} />
+            <circle cx="45\" cy="32\" r="2\" fill={isDark ? '#F3F4F6' : 'white'} opacity={0.8} />
             <circle cx="55" cy="32" r="2" fill={isDark ? '#F3F4F6' : 'white'} opacity={0.8} />
           </>
         ) : (
