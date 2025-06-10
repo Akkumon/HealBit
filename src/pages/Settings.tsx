@@ -1,49 +1,69 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Download, Trash2, Shield, Info, HardDrive } from 'lucide-react';
+import { ArrowLeft, Download, Upload, Trash2, Shield, Info } from 'lucide-react';
 import PageContainer from '@/components/PageContainer';
 import { useToast } from '@/hooks/use-toast';
-import { useDataManager } from '@/hooks/useDataManager';
-import { StorageStats } from '@/services/DataManager';
-import { copies } from '@/utils/copies';
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { exportData, purgeAllData, getStorageStats, isLoading } = useDataManager();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [storageStats, setStorageStats] = useState<StorageStats | null>(null);
 
-  useEffect(() => {
-    loadStorageStats();
-  }, []);
-
-  const loadStorageStats = async () => {
-    const stats = await getStorageStats();
-    setStorageStats(stats);
-  };
-
-  const handleExportData = async () => {
+  const handleExportData = () => {
     try {
-      await exportData('full');
+      const data = {
+        profile: JSON.parse(localStorage.getItem('healbit-user-profile') || '{}'),
+        entries: JSON.parse(localStorage.getItem('healbit-journal-entries') || '[]'),
+        settings: {
+          lastMood: localStorage.getItem('healbit-last-mood'),
+          userName: localStorage.getItem('healbit-user-name')
+        },
+        exportDate: new Date().toISOString()
+      };
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `healbit-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Data Exported",
+        description: "Your HealBit data has been downloaded safely.",
+      });
     } catch (error) {
-      console.error('Export failed:', error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting your data.",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDeleteAllData = async () => {
+  const handleDeleteAllData = () => {
     if (isDeleting) {
-      try {
-        await purgeAllData();
-        navigate('/');
-      } catch (error) {
-        console.error('Delete failed:', error);
-      } finally {
-        setIsDeleting(false);
-      }
+      // Actually delete the data
+      localStorage.removeItem('healbit-user-profile');
+      localStorage.removeItem('healbit-journal-entries');
+      localStorage.removeItem('healbit-last-mood');
+      localStorage.removeItem('healbit-user-name');
+      localStorage.removeItem('healbit-current-prompt');
+      localStorage.removeItem('healbit-session-mood');
+
+      toast({
+        title: "Data Deleted",
+        description: "All your HealBit data has been permanently removed.",
+      });
+
+      navigate('/');
+      setIsDeleting(false);
     } else {
       setIsDeleting(true);
       // Auto-cancel after 10 seconds
@@ -51,12 +71,14 @@ const Settings = () => {
     }
   };
 
-  const formatBytes = (bytes: number): string => {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  const getStorageSize = () => {
+    let total = 0;
+    for (let key in localStorage) {
+      if (key.startsWith('healbit-')) {
+        total += localStorage[key].length;
+      }
+    }
+    return (total / 1024).toFixed(2); // KB
   };
 
   return (
@@ -84,66 +106,30 @@ const Settings = () => {
           <div className="flex items-start space-x-3">
             <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
             <p className="text-sm text-foreground">
-              <strong>100% Local Storage:</strong> {copies.privacy.assurance}
+              <strong>100% Local Storage:</strong> All your data stays on your device. Nothing is sent to external servers.
             </p>
           </div>
           <div className="flex items-start space-x-3">
             <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
             <p className="text-sm text-foreground">
-              <strong>No Account Required:</strong> {copies.privacy.noTracking}
+              <strong>No Account Required:</strong> Your healing journey is completely private and anonymous.
             </p>
           </div>
           <div className="flex items-start space-x-3">
             <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
             <p className="text-sm text-foreground">
-              <strong>You're in Control:</strong> {copies.privacy.control}
+              <strong>You're in Control:</strong> Export or delete your data anytime with one click.
             </p>
           </div>
         </CardContent>
       </Card>
-
-      {/* Storage Information */}
-      {storageStats && (
-        <Card className="mb-6 bg-white/70 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center">
-              <HardDrive className="w-5 h-5 mr-2" />
-              Storage Usage
-            </CardTitle>
-            <CardDescription>
-              Your data footprint on this device
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Journal Entries</p>
-                <p className="font-medium">{storageStats.totalEntries} reflections</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Storage Used</p>
-                <p className="font-medium">
-                  {formatBytes((storageStats.localStorageSize + storageStats.indexedDBSize) * 1024)}
-                </p>
-              </div>
-            </div>
-            {storageStats.oldestEntry && storageStats.newestEntry && (
-              <div className="pt-2 border-t border-border">
-                <p className="text-xs text-muted-foreground">
-                  Journey span: {new Date(storageStats.oldestEntry).toLocaleDateString()} to {new Date(storageStats.newestEntry).toLocaleDateString()}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Data Management */}
       <Card className="mb-6 bg-white/70 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg">Data Management</CardTitle>
           <CardDescription>
-            {copies.privacy.export}
+            Storage used: {getStorageSize()} KB
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -151,31 +137,25 @@ const Settings = () => {
             onClick={handleExportData}
             variant="outline" 
             className="w-full justify-start h-12"
-            disabled={isLoading}
           >
             <Download className="w-4 h-4 mr-3" />
-            {isLoading ? "Preparing Export..." : "Export My Data"}
+            Export My Data
           </Button>
 
           <Button 
             onClick={handleDeleteAllData}
             variant={isDeleting ? "destructive" : "outline"}
             className="w-full justify-start h-12"
-            disabled={isLoading}
           >
             <Trash2 className="w-4 h-4 mr-3" />
             {isDeleting ? "Click Again to Confirm Delete" : "Delete All Data"}
           </Button>
 
           {isDeleting && (
-            <div className="bg-destructive/10 rounded-lg p-4">
-              <p className="text-sm text-destructive font-medium mb-2">
-                {copies.contextual.deleteConfirmation}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                This action cannot be undone. All your reflections, audio recordings, and settings will be permanently removed from this device.
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              This will permanently delete all your journal entries, progress, and settings.
+              This action cannot be undone.
+            </p>
           )}
         </CardContent>
       </Card>

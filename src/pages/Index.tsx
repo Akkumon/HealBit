@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,6 @@ import BottomNavigation from '@/components/BottomNavigation';
 import PageContainer from '@/components/PageContainer';
 import { MoodType } from '@/types';
 import { cn } from '@/lib/utils';
-import { copies, getUICopy } from '@/utils/copies';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ const Index = () => {
       <div className="text-center mb-8">
         <HealingAvatar mood={currentMood} size="lg" className="mx-auto mb-6" />
         <h2 className="text-2xl font-bold text-foreground mb-3">
-          {userName ? getUICopy('welcome', 'withName', userName) : getUICopy('welcome', 'firstTime')}
+          {userName ? `Welcome back, ${userName}` : 'Begin Your Healing'}
         </h2>
         <p className="text-muted-foreground text-lg mb-6">
           A gentle space for reflection
@@ -71,7 +71,7 @@ const Index = () => {
           className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg h-14"
         >
           <Mic className="w-5 h-5 mr-3" />
-          {getUICopy('prompts', 'invitation').replace('If you\'d like to share what\'s in your heart today...', 'Start Voice Journal')}
+          Start Voice Journal
         </Button>
       </div>
 
@@ -80,7 +80,7 @@ const Index = () => {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg text-primary">Today's Reflection</CardTitle>
           <CardDescription className="text-sm">
-            {getUICopy('prompts', 'gentle')}
+            Take a moment to connect with yourself
           </CardDescription>
         </CardHeader>
         <CardContent>
