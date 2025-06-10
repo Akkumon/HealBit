@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -15,7 +14,7 @@ const PageContainer: React.FC<PageContainerProps> = ({
 }) => {
   return (
     <div className={cn(
-      'min-h-screen bg-gradient-to-br from-background via-blue-50 to-orange-50',
+      'min-h-screen bg-gradient-to-br from-background via-blue-50 to-orange-50 dark:from-background dark:via-gray-900 dark:to-gray-800 transition-colors duration-300',
       className
     )}>
       <div className="container mx-auto px-4 py-8 max-w-md">

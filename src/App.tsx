@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,14 +20,41 @@ const App = () => {
   const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean | null>(null);
 
   useEffect(() => {
+    // Initialize theme on app start
+    const initializeTheme = () => {
+      const savedTheme = localStorage.getItem('healbit-theme') || 'system';
+      
+      if (savedTheme === 'system') {
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', systemPrefersDark ? 'dark' : 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+    };
+
+    initializeTheme();
+
+    // Check onboarding status
     const onboardingStatus = localStorage.getItem('onboardingComplete');
     setIsOnboardingComplete(onboardingStatus === 'true');
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = () => {
+      const currentTheme = localStorage.getItem('healbit-theme');
+      if (currentTheme === 'system' || !currentTheme) {
+        initializeTheme();
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+    return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
   }, []);
 
   if (isOnboardingComplete === null) {
     // Loading state while checking onboarding status
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-blue-50 to-orange-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-blue-50 to-orange-50 dark:from-background dark:via-gray-900 dark:to-gray-800">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">Loading...</p>

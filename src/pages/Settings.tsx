@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Download, Upload, Trash2, Shield, Info } from 'lucide-react';
 import PageContainer from '@/components/PageContainer';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useToast } from '@/hooks/use-toast';
 
 const Settings = () => {
@@ -19,7 +19,8 @@ const Settings = () => {
         entries: JSON.parse(localStorage.getItem('healbit-journal-entries') || '[]'),
         settings: {
           lastMood: localStorage.getItem('healbit-last-mood'),
-          userName: localStorage.getItem('healbit-user-name')
+          userName: localStorage.getItem('healbit-user-name'),
+          theme: localStorage.getItem('healbit-theme')
         },
         exportDate: new Date().toISOString()
       };
@@ -56,6 +57,7 @@ const Settings = () => {
       localStorage.removeItem('healbit-user-name');
       localStorage.removeItem('healbit-current-prompt');
       localStorage.removeItem('healbit-session-mood');
+      localStorage.removeItem('healbit-theme');
 
       toast({
         title: "Data Deleted",
@@ -91,8 +93,13 @@ const Settings = () => {
         <div className="w-10" />
       </div>
 
+      {/* Theme Settings */}
+      <div className="mb-6">
+        <ThemeToggle />
+      </div>
+
       {/* Privacy Information */}
-      <Card className="mb-6 border-primary/20 bg-white/70 backdrop-blur-sm">
+      <Card className="mb-6 border-primary/20 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg flex items-center text-primary">
             <Shield className="w-5 h-5 mr-2" />
@@ -125,7 +132,7 @@ const Settings = () => {
       </Card>
 
       {/* Data Management */}
-      <Card className="mb-6 bg-white/70 backdrop-blur-sm">
+      <Card className="mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg">Data Management</CardTitle>
           <CardDescription>
@@ -161,7 +168,7 @@ const Settings = () => {
       </Card>
 
       {/* App Information */}
-      <Card className="bg-white/70 backdrop-blur-sm">
+      <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Info className="w-5 h-5 mr-2" />
