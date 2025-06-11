@@ -85,6 +85,7 @@ const App = () => {
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/onboarding" element={<Navigate to="/homescreen" replace />} />
+                <Route path="/" element={<Navigate to="/homescreen" replace />} />
                 <Route path="*" element={<NotFound />} />
               </>
             )}
