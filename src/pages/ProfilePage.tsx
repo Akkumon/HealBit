@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,12 +6,14 @@ import { ArrowLeft, Settings, Heart, Calendar, TrendingUp } from 'lucide-react';
 import PageContainer from '@/components/PageContainer';
 import BottomNavigation from '@/components/BottomNavigation';
 import AvatarRenderer from '@/components/AvatarRenderer';
-import { MoodType, UserProfile } from '@/types';
+import { MoodType, UserProfile, JournalEntry } from '@/types';
 import { useAvatarEvolution } from '@/hooks/useAvatarEvolution';
+import { useIndexedDB } from '@/hooks/useIndexedDB';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
   const { evolution } = useAvatarEvolution();
+  const { getJournalEntries } = useIndexedDB();
   const [profile, setProfile] = useState<UserProfile>({
     name: '',
     avatar: {
@@ -26,27 +27,39 @@ const ProfilePage = () => {
     longestStreak: 0
   });
   const [avatarMood, setAvatarMood] = useState<MoodType>('calm');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load profile data
-    const savedProfile = localStorage.getItem('healbit-user-profile');
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    }
+    const loadProfileData = async () => {
+      setIsLoading(true);
+      try {
+        // Load profile data
+        const savedProfile = localStorage.getItem('healbit-user-profile');
+        if (savedProfile) {
+          setProfile(JSON.parse(savedProfile));
+        }
 
-    // Load stats
-    const entries = JSON.parse(localStorage.getItem('healbit-journal-entries') || '[]');
-    const lastMood = localStorage.getItem('healbit-last-mood') as MoodType;
-    
-    setProfile(prev => ({
-      ...prev,
-      totalEntries: entries.length
-    }));
+        // Load stats from IndexedDB
+        const entries = await getJournalEntries();
+        const lastMood = localStorage.getItem('healbit-last-mood') as MoodType;
+        
+        setProfile(prev => ({
+          ...prev,
+          totalEntries: entries.length
+        }));
 
-    if (lastMood) {
-      setAvatarMood(lastMood);
-    }
-  }, []);
+        if (lastMood) {
+          setAvatarMood(lastMood);
+        }
+      } catch (error) {
+        console.error('Error loading profile data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfileData();
+  }, [getJournalEntries]);
 
   const handleNameChange = (name: string) => {
     const updatedProfile = { ...profile, name };
@@ -55,23 +68,52 @@ const ProfilePage = () => {
     localStorage.setItem('healbit-user-name', name);
   };
 
-  const moodStats = () => {
-    const entries = JSON.parse(localStorage.getItem('healbit-journal-entries') || '[]');
-    const moodCounts: Record<MoodType, number> = {
-      joy: 0, calm: 0, hope: 0, neutral: 0, sadness: 0, anger: 0
-    };
+  const moodStats = async () => {
+    try {
+      const entries = await getJournalEntries();
+      const moodCounts: Record<MoodType, number> = {
+        joy: 0, calm: 0, hope: 0, neutral: 0, sadness: 0, anger: 0
+      };
 
-    entries.forEach((entry: any) => {
-      if (entry.mood) {
-        moodCounts[entry.mood]++;
-      }
-    });
+      entries.forEach((entry: JournalEntry) => {
+        if (entry.mood) {
+          moodCounts[entry.mood]++;
+        }
+      });
 
-    return moodCounts;
+      return moodCounts;
+    } catch (error) {
+      console.error('Error calculating mood stats:', error);
+      return { joy: 0, calm: 0, hope: 0, neutral: 0, sadness: 0, anger: 0 };
+    }
   };
 
-  const stats = moodStats();
+  const [stats, setStats] = useState<Record<MoodType, number>>({
+    joy: 0, calm: 0, hope: 0, neutral: 0, sadness: 0, anger: 0
+  });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      const moodData = await moodStats();
+      setStats(moodData);
+    };
+    loadStats();
+  }, []);
+
   const totalMoodEntries = Object.values(stats).reduce((a, b) => a + b, 0);
+
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-muted-foreground">Loading your profile...</p>
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
@@ -86,7 +128,7 @@ const ProfilePage = () => {
       </div>
 
       {/* Avatar & Name */}
-      <Card className="mb-6 bg-white/70 backdrop-blur-sm text-center">
+      <Card className="mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm text-center">
         <CardContent className="pt-6 space-y-4">
           <AvatarRenderer 
             mood={avatarMood} 
@@ -128,7 +170,7 @@ const ProfilePage = () => {
       </Card>
 
       {/* Journey Stats */}
-      <Card className="mb-6 border-primary/20 bg-white/70 backdrop-blur-sm">
+      <Card className="mb-6 border-primary/20 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <TrendingUp className="w-5 h-5 mr-2" />
@@ -155,7 +197,7 @@ const ProfilePage = () => {
       </Card>
 
       {/* Mood Patterns */}
-      <Card className="mb-6 border-accent/20 bg-white/70 backdrop-blur-sm">
+      <Card className="mb-6 border-accent/20 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Heart className="w-5 h-5 mr-2" />
@@ -195,7 +237,7 @@ const ProfilePage = () => {
       </Card>
 
       {/* Avatar Mood Selector */}
-      <Card className="mb-6 bg-white/70 backdrop-blur-sm">
+      <Card className="mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="text-lg">Avatar Mood</CardTitle>
           <CardDescription>How is your avatar feeling today?</CardDescription>

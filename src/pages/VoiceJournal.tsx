@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -45,7 +44,7 @@ const VoiceJournal = () => {
     clearTranscript
   } = useTranscription();
 
-  const { saveAudio } = useIndexedDB();
+  const { saveJournalEntry } = useIndexedDB();
 
   useEffect(() => {
     // Load the selected prompt from DailyPrompt page
@@ -74,19 +73,17 @@ const VoiceJournal = () => {
       try {
         const entryId = Date.now().toString();
         
-        // Convert audio URL to blob for IndexedDB storage
+        // Convert audio URL to blob for storage
         const response = await fetch(audioUrl);
         const audioBlob = await response.blob();
         
-        // Save audio to IndexedDB
-        await saveAudio(entryId, audioBlob);
-        
-        // Save journal entry to localStorage
+        // Create journal entry
         const entry: JournalEntry = {
           id: entryId,
           date: new Date().toISOString(),
           promptId: currentPrompt?.id || '',
           audioUrl, // Keep for immediate playback
+          audioBlob, // Store blob for persistence
           transcript,
           transcriptConfidence: confidence,
           mood: selectedMood,
@@ -96,9 +93,8 @@ const VoiceJournal = () => {
           hasAudio: true
         };
 
-        const savedEntries = JSON.parse(localStorage.getItem('healbit-journal-entries') || '[]');
-        savedEntries.push(entry);
-        localStorage.setItem('healbit-journal-entries', JSON.stringify(savedEntries));
+        // Save to IndexedDB
+        await saveJournalEntry(entry);
         
         // Store current mood and navigate to affirmation
         localStorage.setItem('healbit-session-mood', selectedMood);
@@ -137,7 +133,7 @@ const VoiceJournal = () => {
       </div>
 
       {currentPrompt && (
-        <Card className="mb-6 border-primary/20 bg-white/70 backdrop-blur-sm">
+        <Card className="mb-6 border-primary/20 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
           <CardContent className="pt-6">
             <p className="text-foreground font-medium leading-relaxed">
               "{currentPrompt.text}"
@@ -223,7 +219,7 @@ const VoiceJournal = () => {
           </div>
 
           {/* Mood Selection */}
-          <Card className="mb-6">
+          <Card className="mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
             <CardContent className="pt-6">
               <h3 className="text-lg font-medium mb-3">How are you feeling?</h3>
               <div className="grid grid-cols-3 gap-3">

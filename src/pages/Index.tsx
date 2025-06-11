@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,22 +6,41 @@ import { Heart, Mic, TrendingUp, Settings } from 'lucide-react';
 import HealingAvatar from '@/components/HealingAvatar';
 import BottomNavigation from '@/components/BottomNavigation';
 import PageContainer from '@/components/PageContainer';
-import { MoodType } from '@/types';
+import { MoodType, JournalEntry } from '@/types';
+import { useIndexedDB } from '@/hooks/useIndexedDB';
 import { cn } from '@/lib/utils';
 
 const Index = () => {
   const navigate = useNavigate();
   const [currentMood, setCurrentMood] = useState<MoodType>('neutral');
   const [userName, setUserName] = useState<string>('');
+  const [totalEntries, setTotalEntries] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const { getJournalEntries } = useIndexedDB();
 
   useEffect(() => {
-    // Load user preferences from localStorage
-    const savedName = localStorage.getItem('healbit-user-name');
-    const savedMood = localStorage.getItem('healbit-last-mood') as MoodType;
-    
-    if (savedName) setUserName(savedName);
-    if (savedMood) setCurrentMood(savedMood);
-  }, []);
+    const loadUserData = async () => {
+      setIsLoading(true);
+      try {
+        // Load user preferences from localStorage
+        const savedName = localStorage.getItem('healbit-user-name');
+        const savedMood = localStorage.getItem('healbit-last-mood') as MoodType;
+        
+        if (savedName) setUserName(savedName);
+        if (savedMood) setCurrentMood(savedMood);
+
+        // Load entry count from IndexedDB
+        const entries = await getJournalEntries();
+        setTotalEntries(entries.length);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [getJournalEntries]);
 
   const dailyPrompts = [
     "What's one small thing that brought you comfort today?",
@@ -41,6 +59,19 @@ const Index = () => {
   const handleViewProgress = () => {
     navigate('/tracker');
   };
+
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
@@ -76,7 +107,7 @@ const Index = () => {
       </div>
 
       {/* Daily Prompt Preview */}
-      <Card className="mb-6 border-primary/20 bg-white/70 backdrop-blur-sm">
+      <Card className="mb-6 border-primary/20 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg text-primary">Today's Reflection</CardTitle>
           <CardDescription className="text-sm">
@@ -93,7 +124,7 @@ const Index = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <Card 
-          className="bg-white/50 border-accent/30 cursor-pointer hover:bg-white/70 transition-colors"
+          className="bg-white/50 dark:bg-gray-800/50 border-accent/30 cursor-pointer hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors"
           onClick={handleViewProgress}
         >
           <CardContent className="p-4 text-center">
@@ -103,7 +134,7 @@ const Index = () => {
         </Card>
         
         <Card 
-          className="bg-white/50 border-primary/30 cursor-pointer hover:bg-white/70 transition-colors"
+          className="bg-white/50 dark:bg-gray-800/50 border-primary/30 cursor-pointer hover:bg-white/70 dark:hover:bg-gray-800/70 transition-colors"
           onClick={() => navigate('/profile')}
         >
           <CardContent className="p-4 text-center">
@@ -113,8 +144,20 @@ const Index = () => {
         </Card>
       </div>
 
+      {/* Stats Display */}
+      {totalEntries > 0 && (
+        <Card className="mb-6 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-primary mb-1">{totalEntries}</div>
+            <p className="text-sm text-muted-foreground">
+              Reflection{totalEntries !== 1 ? 's' : ''} recorded
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Gentle Reminder */}
-      <div className="bg-accent/10 rounded-lg p-4 text-center mb-6">
+      <div className="bg-accent/10 dark:bg-accent/20 rounded-lg p-4 text-center mb-6">
         <p className="text-sm text-accent-foreground">
           💝 Remember: Healing isn't linear. Every small step counts.
         </p>
