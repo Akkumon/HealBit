@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface AvatarSetupProps {
   onContinue: () => void;
@@ -6,10 +6,25 @@ interface AvatarSetupProps {
 }
 
 const AvatarSetup: React.FC<AvatarSetupProps> = ({ onContinue, onSkip }) => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.getAttribute('data-theme') === 'dark');
+    };
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+
+  const primaryColor = isDarkMode ? '#8CA1FF' : '#6D83F2';
+  const accentColor = isDarkMode ? '#FFCCB0' : '#FFBB9C';
+
   const avatars = [
-    { id: 'avatar1', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="var(--accent)" /><path d="M30 65 Q50 85 70 65" stroke="var(--primary)" strokeWidth="3" fill="none" /></svg>' },
-    { id: 'avatar2', svg: '<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="10" ry="10" fill="var(--primary)" /><circle cx="50" cy="50" r="20" fill="var(--accent)" /></svg>' },
-    { id: 'avatar3', svg: '<svg viewBox="0 0 100 100"><path d="M50 10 L80 40 L70 90 L30 90 L20 40 Z" fill="var(--accent)" /><circle cx="50" cy="50" r="15" fill="var(--primary)" /></svg>' },
+    { id: 'avatar1', svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="${accentColor}" /><path d="M30 65 Q50 85 70 65" stroke="${primaryColor}" strokeWidth="3" fill="none" /></svg>` },
+    { id: 'avatar2', svg: `<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="10" ry="10" fill="${primaryColor}" /><circle cx="50" cy="50" r="20" fill="${accentColor}" /></svg>` },
+    { id: 'avatar3', svg: `<svg viewBox="0 0 100 100"><path d="M50 10 L80 40 L70 90 L30 90 L20 40 Z" fill="${accentColor}" /><circle cx="50" cy="50" r="15" fill="${primaryColor}" /></svg>` },
   ];
 
   const handleAvatarSelect = (avatarId: string) => {
