@@ -1,15 +1,14 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
 
 interface WelcomeScreenProps {
-  onboarding: ReturnType<typeof import('@/hooks/useOnboarding').useOnboarding>;
+  onBeginHealing: () => void;
 }
 
-const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onboarding }) => {
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onBeginHealing }) => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 px-6 py-8">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background px-6 py-8">
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10" />
       
@@ -27,7 +26,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onboarding }) => {
 
         {/* Main CTA */}
         <Button 
-          onClick={onboarding.nextStep}
+          onClick={onBeginHealing}
           size="lg"
           className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg h-14 w-full mb-4"
         >
@@ -36,7 +35,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onboarding }) => {
 
         {/* Skip option */}
         <button 
-          onClick={onboarding.skipToEnd}
+          onClick={onBeginHealing}
           className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Skip setup
