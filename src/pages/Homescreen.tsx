@@ -10,7 +10,7 @@ import { MoodType, JournalEntry } from '@/types';
 import { useIndexedDB } from '@/hooks/useIndexedDB';
 import { cn } from '@/lib/utils';
 
-const Index = () => {
+const Homescreen = () => {
   const navigate = useNavigate();
   const [currentMood, setCurrentMood] = useState<MoodType>('neutral');
   const [userName, setUserName] = useState<string>('');
@@ -192,4 +192,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Homescreen;

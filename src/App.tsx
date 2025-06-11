@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Index from "./pages/Index";
+import Homescreen from "./pages/Homescreen";
 import DailyPrompt from "./pages/DailyPrompt";
 import VoiceJournal from "./pages/VoiceJournal";
 import AffirmationScreen from "./pages/AffirmationScreen";
@@ -77,14 +77,14 @@ const App = () => {
               </>
             ) : (
               <>
-                <Route path="/" element={<Index />} />
+                <Route path="/homescreen" element={<Homescreen />} />
                 <Route path="/prompt" element={<DailyPrompt />} />
                 <Route path="/journal" element={<VoiceJournal />} />
                 <Route path="/affirmation" element={<AffirmationScreen />} />
                 <Route path="/tracker" element={<HealingTracker />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/onboarding" element={<Navigate to="/" replace />} />
+                <Route path="/onboarding" element={<Navigate to="/homescreen" replace />} />
                 <Route path="*" element={<NotFound />} />
               </>
             )}
