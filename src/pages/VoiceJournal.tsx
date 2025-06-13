@@ -25,6 +25,7 @@ const VoiceJournal = () => {
     isRecording,
     isPlaying,
     audioUrl,
+    audioBlob,
     duration,
     error,
     startRecording,
@@ -84,21 +85,17 @@ const VoiceJournal = () => {
   };
 
   const handleSave = async () => {
-    if (audioUrl) {
+    if (audioUrl && audioBlob) {
       try {
         const entryId = Date.now().toString();
         
-        // Convert audio URL to blob for storage
-        const response = await fetch(audioUrl);
-        const audioBlob = await response.blob();
-        
-        // Create journal entry
+        // Create journal entry using the audioBlob directly
         const entry: JournalEntry = {
           id: entryId,
           date: new Date().toISOString(),
           promptId: currentPrompt?.id || '',
           audioUrl, // Keep for immediate playback
-          audioBlob, // Store blob for persistence
+          audioBlob, // Use the blob directly from state
           transcript,
           transcriptConfidence: confidence,
           mood: selectedMood,

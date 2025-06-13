@@ -1,10 +1,10 @@
-
 import { useState, useRef, useCallback } from 'react';
 
 export interface AudioRecordingState {
   isRecording: boolean;
   isPlaying: boolean;
   audioUrl: string | null;
+  audioBlob: Blob | null;
   duration: number;
   error: string | null;
 }
@@ -14,6 +14,7 @@ export const useAudioRecording = () => {
     isRecording: false,
     isPlaying: false,
     audioUrl: null,
+    audioBlob: null,
     duration: 0,
     error: null
   });
@@ -55,6 +56,7 @@ export const useAudioRecording = () => {
         setState(prev => ({
           ...prev,
           audioUrl,
+          audioBlob: blob,
           isRecording: false
         }));
 
@@ -155,6 +157,7 @@ export const useAudioRecording = () => {
       isRecording: false,
       isPlaying: false,
       audioUrl: null,
+      audioBlob: null,
       duration: 0,
       error: null
     });
