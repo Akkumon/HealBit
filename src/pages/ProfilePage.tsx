@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ArrowLeft, Settings, Heart, Calendar, TrendingUp } from 'lucide-react';
 import PageContainer from '@/components/PageContainer';
 import BottomNavigation from '@/components/BottomNavigation';
-import AvatarRenderer from '@/components/AvatarRenderer';
 import { MoodType, UserProfile, JournalEntry } from '@/types';
 import { useAvatarEvolution } from '@/hooks/useAvatarEvolution';
 import { useIndexedDB } from '@/hooks/useIndexedDB';
+import Orb from '../../journaling page/Orb/Orb';
+import { cn } from '@/lib/utils';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -130,12 +131,14 @@ const ProfilePage = () => {
       {/* Avatar & Name */}
       <Card className="mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm text-center">
         <CardContent className="pt-6 space-y-4">
-          <AvatarRenderer 
-            mood={avatarMood} 
-            evolution={evolution}
-            size="lg" 
-            className="mx-auto" 
-          />
+          <div className="mx-auto w-fit">
+            <Orb 
+              forceHoverState={false} 
+              hue={avatarMood === 'joy' ? 45 : avatarMood === 'calm' ? 200 : avatarMood === 'hope' ? 120 : avatarMood === 'sadness' ? 210 : avatarMood === 'anger' ? 0 : 0}
+              innerRadius={avatarMood === 'joy' ? 0.7 : avatarMood === 'calm' ? 0.6 : avatarMood === 'hope' ? 0.65 : avatarMood === 'sadness' ? 0.5 : avatarMood === 'anger' ? 0.4 : 0.6}
+              noiseScale={avatarMood === 'joy' ? 0.5 : avatarMood === 'calm' ? 0.7 : avatarMood === 'hope' ? 0.6 : avatarMood === 'sadness' ? 0.8 : avatarMood === 'anger' ? 1.0 : 0.65}
+            />
+          </div>
           
           <div>
             <input
@@ -243,20 +246,20 @@ const ProfilePage = () => {
           <CardDescription>How is your avatar feeling today?</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-center space-x-3 flex-wrap gap-2">
-            {(['joy', 'calm', 'hope', 'neutral', 'sadness'] as const).map((mood) => (
+          <div className="grid grid-cols-3 gap-3">
+            {(['joy', 'calm', 'hope', 'neutral', 'sadness', 'anger'] as const).map((mood) => (
               <button
                 key={mood}
                 onClick={() => setAvatarMood(mood)}
-                className={`p-2 rounded-full transition-all duration-200 ${
-                  avatarMood === mood ? 'scale-110 ring-2 ring-primary ring-offset-2' : 'hover:scale-105'
-                }`}
+                className={cn(
+                  'p-3 rounded-lg border-2 transition-all flex flex-col items-center space-y-1',
+                  avatarMood === mood
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border hover:border-primary/50'
+                )}
               >
-                <AvatarRenderer 
-                  mood={mood} 
-                  evolution={evolution}
-                  size="sm" 
-                />
+                <Orb forceHoverState={avatarMood === mood} hue={mood === 'joy' ? 45 : mood === 'calm' ? 200 : mood === 'hope' ? 120 : mood === 'sadness' ? 210 : mood === 'anger' ? 0 : 0} />
+                <span className="text-xs font-medium capitalize">{mood}</span>
               </button>
             ))}
           </div>

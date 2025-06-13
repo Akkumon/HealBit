@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart, Home, TrendingUp } from 'lucide-react';
 import PageContainer from '@/components/PageContainer';
-import HealingAvatar from '@/components/HealingAvatar';
+import Orb from '../../journaling page/Orb/Orb';
 import { MoodType, Affirmation, JournalEntry } from '@/types';
 import { useIndexedDB } from '@/hooks/useIndexedDB';
 
@@ -93,7 +93,11 @@ const AffirmationScreen = () => {
   return (
     <PageContainer showNavigation={false}>
       <div className="flex flex-col items-center justify-center min-h-[80vh] text-center space-y-8">
-        <HealingAvatar mood={sessionMood} size="lg" className="animate-scale-in" />
+        <div className="text-center mb-10">
+          <div className="mx-auto w-fit animate-scale-in">
+            <Orb forceHoverState={true} />
+          </div>
+        </div>
         
         <Card className="border-primary/20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm animate-fade-in">
           <CardContent className="p-8 space-y-4">

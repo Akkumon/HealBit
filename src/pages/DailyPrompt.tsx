@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -89,7 +88,7 @@ const DailyPrompt = () => {
         <div className="w-10" /> {/* Spacer */}
       </div>
 
-      <Card className="mb-6 border-primary/20 bg-white/70 backdrop-blur-sm">
+      <Card className="mb-6 border-primary/20 bg-card">
         <CardHeader>
           <CardTitle className="text-primary capitalize">
             {selectedPrompt.category.replace('-', ' ')}

@@ -1,5 +1,4 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 export interface TranscriptionState {
   isProcessing: boolean;
@@ -8,15 +7,13 @@ export interface TranscriptionState {
   error: string | null;
 }
 
-const mockTranscripts = [
-  "I'm feeling overwhelmed today, but I'm trying to take things one step at a time.",
-  "Today was challenging, but I noticed some small moments of peace.",
-  "I'm grateful for the support I have, even when it's hard to see.",
-  "Sometimes I feel like I'm not making progress, but I know healing takes time.",
-  "I had a good moment today where I felt hopeful about the future.",
-  "It's okay to not be okay. I'm learning to be gentle with myself.",
-  "I'm proud of myself for taking time to reflect today."
-];
+const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+if (recognition) {
+  recognition.continuous = true; // Keep listening
+  recognition.interimResults = true; // Get results while speaking
+}
 
 export const useTranscription = () => {
   const [state, setState] = useState<TranscriptionState>({
@@ -26,38 +23,82 @@ export const useTranscription = () => {
     error: null
   });
 
-  const generateTranscript = useCallback(async (duration: number): Promise<string> => {
-    setState(prev => ({ ...prev, isProcessing: true, error: null }));
-    
-    try {
-      // Simulate processing time based on duration
-      const processingTime = Math.min(duration * 100, 3000); // Max 3 seconds
-      await new Promise(resolve => setTimeout(resolve, processingTime));
-      
-      // Select transcript based on duration
-      const transcriptIndex = Math.floor(duration / 10) % mockTranscripts.length;
-      const baseTranscript = mockTranscripts[transcriptIndex];
-      
-      // Simulate confidence based on duration (longer recordings = higher confidence)
-      const confidence = Math.min(0.7 + (duration / 60) * 0.25, 0.95);
-      
-      setState(prev => ({
-        ...prev,
-        isProcessing: false,
-        transcript: baseTranscript,
-        confidence
-      }));
-      
-      return baseTranscript;
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        isProcessing: false,
-        error: 'Failed to generate transcript'
-      }));
-      throw error;
+  const isMounted = useRef(true);
+
+  // Cleanup on unmount
+  // useEffect(() => {
+  //   return () => {
+  //     isMounted.current = false;
+  //     if (recognition) {
+  //       recognition.stop();
+  //     }
+  //   };
+  // }, []);
+
+  const startListening = useCallback(() => {
+    if (!recognition) {
+      setState(prev => ({ ...prev, error: 'Speech recognition not supported in this browser.' }));
+      return;
     }
+
+    setState(prev => ({ ...prev, isProcessing: true, transcript: '', error: null }));
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let interimTranscript = '';
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const transcriptSegment = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcriptSegment;
+        } else {
+          interimTranscript += transcriptSegment;
+        }
+      }
+
+      if (isMounted.current) {
+        setState(prev => ({
+          ...prev,
+          transcript: finalTranscript + interimTranscript,
+          confidence: event.results[event.results.length - 1][0].confidence || 0
+        }));
+      }
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (isMounted.current) {
+        setState(prev => ({ ...prev, error: `Speech recognition error: ${event.error}` }));
+        console.error('Speech recognition error:', event);
+      }
+    };
+
+    recognition.onend = () => {
+      if (isMounted.current && state.isProcessing) {
+        // If processing is still true, it means recognition stopped unexpectedly
+        setState(prev => ({ ...prev, isProcessing: false }));
+      }
+    };
+
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error("Error starting speech recognition:", e);
+      setState(prev => ({ ...prev, isProcessing: false, error: 'Error starting speech recognition.' }));
+    }
+  }, [state.isProcessing]);
+
+  const stopListening = useCallback(() => {
+    if (recognition) {
+      recognition.stop();
+    }
+    setState(prev => ({ ...prev, isProcessing: false }));
   }, []);
+
+  const generateTranscript = useCallback(async (duration: number): Promise<string> => {
+    // This function will now simply return the current final transcript
+    // as live transcription is happening via startListening/stopListening
+    return state.transcript;
+  }, [state.transcript]);
 
   const updateTranscript = useCallback((newTranscript: string) => {
     setState(prev => ({
@@ -80,6 +121,8 @@ export const useTranscription = () => {
     ...state,
     generateTranscript,
     updateTranscript,
-    clearTranscript
+    clearTranscript,
+    startListening,
+    stopListening
   };
 };

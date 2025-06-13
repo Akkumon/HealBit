@@ -1,95 +1,78 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { cn, getMoodColorClass } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Calendar, Zap, Heart } from 'lucide-react';
-import PageContainer from '@/components/PageContainer';
-import BottomNavigation from '@/components/BottomNavigation';
-import SentimentMeter from '@/components/SentimentMeter';
+import { Calendar } from '@/components/ui/calendar';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, PlusCircle } from 'lucide-react';
 import WeatherAnimation from '@/components/WeatherAnimation';
-import { HealingProgress, MoodType, JournalEntry } from '@/types';
-import { useSentimentAnalysis } from '@/hooks/useSentimentAnalysis';
+import { getDailyStreaks, getMoodFrequency } from '@/lib/moodAnalysis';
+import PageContainer from '@/components/PageContainer';
+import { MoodType, JournalEntry } from '@/types';
 import { useIndexedDB } from '@/hooks/useIndexedDB';
-import { useTheme } from '@/hooks/useTheme';
-import { cn } from '@/lib/utils';
+import { EmotionScale } from '@/types/sentiment';
 
 const HealingTracker = () => {
   const navigate = useNavigate();
-  const { isDark } = useTheme();
-  const [progress, setProgress] = useState<HealingProgress[]>([]);
-  const [totalEntries, setTotalEntries] = useState(0);
-  const [currentStreak, setCurrentStreak] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const { sentimentData, moodToEmotionScale } = useSentimentAnalysis();
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const { getJournalEntries } = useIndexedDB();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   useEffect(() => {
-    const loadProgress = async () => {
-      setIsLoading(true);
-      try {
-        const entries = await getJournalEntries();
-        setTotalEntries(entries.length);
-
-        // Group entries by date and calculate mood trends
-        const progressData: HealingProgress[] = [];
-        const entryDates = new Map();
-
-        entries.forEach((entry: JournalEntry) => {
-          const date = new Date(entry.date).toDateString();
-          if (!entryDates.has(date)) {
-            entryDates.set(date, []);
-          }
-          entryDates.get(date).push(entry);
-        });
-
-        // Convert to progress data
-        Array.from(entryDates.entries()).forEach(([date, dayEntries]) => {
-          const moods = dayEntries.map((e: JournalEntry) => e.mood);
-          const dominantMood = moods.reduce((a: MoodType, b: MoodType) => 
-            moods.filter((v: MoodType) => v === a).length >= moods.filter((v: MoodType) => v === b).length ? a : b
-          );
-
-          progressData.push({
-            date,
-            mood: dominantMood,
-            entryCount: dayEntries.length
-          });
-        });
-
-        progressData.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        setProgress(progressData);
-
-        // Calculate streak
-        let streak = 0;
-        const today = new Date().toDateString();
-        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toDateString();
-        
-        // Check if there's an entry today or yesterday to start the streak
-        const hasRecentEntry = progressData.some(p => p.date === today || p.date === yesterday);
-        
-        if (hasRecentEntry) {
-          for (let i = progressData.length - 1; i >= 0; i--) {
-            const entryDate = new Date(progressData[i].date);
-            const expectedDate = new Date(Date.now() - streak * 24 * 60 * 60 * 1000);
-            
-            if (entryDate.toDateString() === expectedDate.toDateString()) {
-              streak++;
-            } else {
-              break;
-            }
-          }
-        }
-        
-        setCurrentStreak(streak);
-      } catch (error) {
-        console.error('Error loading progress:', error);
-      } finally {
-        setIsLoading(false);
-      }
+    const fetchEntries = async () => {
+      const entries = await getJournalEntries();
+      setJournalEntries(entries);
     };
-
-    loadProgress();
+    fetchEntries();
   }, [getJournalEntries]);
+
+  // Calculate streaks and mood frequency
+  const streaks = useMemo(() => getDailyStreaks(journalEntries), [journalEntries]);
+  const moodFrequency = useMemo(() => getMoodFrequency(journalEntries), [journalEntries]);
+
+  // Determine dominant mood for the landscape
+  const dominantMoodForLandscape = useMemo(() => {
+    const totalEntriesCount = Object.values(moodFrequency).reduce((sum, count) => (sum as number) + (count as number), 0);
+    if (totalEntriesCount === 0) return 'neutral';
+
+    const sortedMoods = Object.entries(moodFrequency).sort(([, countA], [, countB]) => (countB as number) - (countA as number));
+    const mostFrequentMood = sortedMoods[0][0];
+
+    // Map to specific moods for the landscape
+    if (mostFrequentMood === 'happy' || mostFrequentMood === 'excited') return 'joy';
+    if (mostFrequentMood === 'calm' || mostFrequentMood === 'peaceful') return 'calm';
+    if (mostFrequentMood === 'hopeful' || mostFrequentMood === 'grateful') return 'hope';
+    if (mostFrequentMood === 'sad' || mostFrequentMood === 'lonely') return 'sadness';
+    if (mostFrequentMood === 'angry' || mostFrequentMood === 'frustrated') return 'anger';
+    return 'neutral';
+  }, [moodFrequency]);
+
+  // Map MoodType to EmotionScale for WeatherAnimation (1-5)
+  const moodToEmotionScaleMap: Record<MoodType, EmotionScale> = {
+    anger: 1,
+    sadness: 2,
+    neutral: 3,
+    calm: 4,
+    hope: 4,
+    joy: 5
+  };
+
+  const currentEmotionScale: EmotionScale = moodToEmotionScaleMap[dominantMoodForLandscape] || 3;
+
+  const handleDayClick = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) {
+      const entriesForDay = journalEntries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate.getDate() === date.getDate() &&
+               entryDate.getMonth() === date.getMonth() &&
+               entryDate.getFullYear() === date.getFullYear();
+      });
+      // TODO: Display entries for the selected day or navigate to a daily summary
+      console.log('Entries for selected day:', entriesForDay);
+    }
+  };
 
   const getWeatherDescription = (mood: MoodType) => {
     const descriptions = {
@@ -104,165 +87,123 @@ const HealingTracker = () => {
   };
 
   const getEncouragementMessage = () => {
-    if (totalEntries === 0) {
+    if (journalEntries.length === 0) {
       return "Your healing journey begins with the first step. Every voice matters. 🌱";
     }
     
-    if (currentStreak === 0) {
+    if (streaks === 0) {
       return "Every storm passes. Your sunny days are coming. 🌈";
     }
     
-    if (currentStreak === 1) {
+    if (streaks === 1) {
       return "Beautiful! You've taken another step in your healing journey. 💝";
     }
     
-    if (currentStreak < 7) {
-      return `Amazing! You're on a ${currentStreak}-day journey of self-reflection. 🌟`;
+    if (streaks < 7) {
+      return `Amazing! You're on a ${streaks}-day journey of self-reflection. 🌟`;
     }
     
-    return `Incredible! ${currentStreak} days of consistent healing. You're growing so beautifully. 🌸`;
+    return `Incredible! ${streaks} days of consistent healing. You're growing so beautifully. 🌸`;
   };
-
-  if (isLoading) {
-    return (
-      <PageContainer>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center space-y-4">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-muted-foreground">Loading your weather patterns...</p>
-          </div>
-        </div>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer>
-      <div className="flex items-center justify-between mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-xl font-semibold text-foreground">Healing Weather</h1>
-        <div className="w-10" />
-      </div>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-8">
+        <h1 className="text-4xl font-extrabold text-primary-foreground text-center animate-fade-in-up">
+          Your Healing Journey
+        </h1>
 
-      {/* Sentiment Overview */}
-      <div className="mb-6">
-        <SentimentMeter sentimentData={sentimentData} />
-      </div>
+        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Streaks Card */}
+          <Card className="bg-card/70 backdrop-blur-sm text-card-foreground shadow-lg animate-fade-in-left">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold">Healing Streaks</CardTitle>
+              <CardDescription>Consistency is key to healing.</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center text-5xl font-extrabold text-primary">
+              {streaks}
+              <span className="text-xl text-card-foreground ml-2">days</span>
+            </CardContent>
+          </Card>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <Card className={cn(
-          'transition-all duration-300',
-          isDark ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-white/70 backdrop-blur-sm'
-        )}>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary mb-1">{totalEntries}</div>
-            <p className="text-sm text-muted-foreground">Reflections</p>
-          </CardContent>
-        </Card>
-        
-        <Card className={cn(
-          'transition-all duration-300',
-          isDark ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-white/70 backdrop-blur-sm'
-        )}>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-accent-foreground mb-1">{currentStreak}</div>
-            <p className="text-sm text-muted-foreground">Day Streak</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Weather Timeline */}
-      <Card className={cn(
-        'mb-6 border-primary/20 transition-all duration-300',
-        isDark ? 'bg-gray-800/70 backdrop-blur-sm' : 'bg-white/70 backdrop-blur-sm'
-      )}>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center">
-            <Calendar className="w-5 h-5 mr-2" />
-            Your Weather History
-          </CardTitle>
-          <CardDescription>
-            See how your emotional climate has been changing
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {progress.length === 0 ? (
-            <div className="text-center py-8">
-              <WeatherAnimation emotionScale={3} size="lg" className="mx-auto mb-4" />
-              <p className="text-muted-foreground mb-2">Start journaling to see your weather patterns</p>
-              <p className="text-sm text-muted-foreground">Every reflection helps you understand your emotional seasons</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {progress.slice(-7).reverse().map((day, index) => (
-                <div 
-                  key={day.date} 
-                  className={cn(
-                    'flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:scale-[1.02]',
-                    isDark ? 'bg-gray-700/50' : 'bg-background/50'
-                  )}
-                >
-                  <div className="flex items-center space-x-3">
-                    <WeatherAnimation 
-                      emotionScale={moodToEmotionScale(day.mood)} 
-                      size="sm" 
-                    />
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {getWeatherDescription(day.mood)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(day.date).toLocaleDateString('en-US', { 
-                          weekday: 'short', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
-                      </p>
+          {/* Mood Summary Card */}
+          <Card className="bg-card/70 backdrop-blur-sm text-card-foreground shadow-lg animate-fade-in-right">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold">Mood Summary</CardTitle>
+              <CardDescription>Your emotional landscape over time.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap justify-center gap-2">
+              {Object.entries(moodFrequency).length > 0 ? (
+                Object.entries(moodFrequency)
+                  .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
+                  .map(([mood, count]) => (
+                    <div
+                      key={mood}
+                      className={`flex items-center space-x-1 p-2 rounded-lg ${getMoodColorClass(mood)}`}
+                    >
+                      <span className="font-medium capitalize">{mood}</span>
+                      <span className="text-sm opacity-70">({count})</span>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-foreground">
-                      {day.entryCount} reflection{day.entryCount !== 1 ? 's' : ''}
-                    </p>
-                    {index === 0 && (
-                      <p className="text-xs text-primary">Today</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  ))
+              ) : (
+                <p className="text-muted-foreground">No entries yet. Start journaling to see your moods!</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Encouragement */}
-      <Card className={cn(
-        'border-primary/20 transition-all duration-300',
-        isDark 
-          ? 'bg-gradient-to-r from-primary/20 to-accent/20' 
-          : 'bg-gradient-to-r from-primary/10 to-accent/10'
-      )}>
-        <CardContent className="p-6 text-center">
-          <div className="flex justify-center mb-3">
-            {currentStreak > 0 ? (
-              <Zap className="w-8 h-8 text-primary" />
-            ) : (
-              <Heart className="w-8 h-8 text-primary" />
+        {/* Interactive Emotional Landscape */}
+        <Card className="w-full max-w-4xl bg-card/70 backdrop-blur-sm text-card-foreground shadow-lg animate-fade-in-up">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Your Emotional Weather</CardTitle>
+            <CardDescription>Visualize your current emotional state.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-64 sm:h-80 md:h-96 w-full flex items-center justify-center p-0">
+            <WeatherAnimation mood={dominantMoodForLandscape} emotionScale={currentEmotionScale} />
+          </CardContent>
+        </Card>
+
+        {/* Calendar Card */}
+        <Card className="w-full max-w-4xl bg-card/70 backdrop-blur-sm text-card-foreground shadow-lg animate-fade-in-down">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold">Journal History</CardTitle>
+            <CardDescription>Browse your past reflections.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDayClick}
+              className="rounded-md border bg-background text-foreground"
+            />
+            {selectedDate && (
+              <div className="mt-4 text-center text-lg">
+                You selected: <span className="font-bold">{selectedDate.toDateString()}</span>
+              </div>
             )}
-          </div>
-          <p className="text-foreground font-medium mb-2 leading-relaxed">
-            {getEncouragementMessage()}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Weather changes, and so do feelings. You're doing beautifully.
-          </p>
-        </CardContent>
-      </Card>
+            <Separator className="my-4 w-full" />
+            <Button onClick={() => navigate('/journal')} className="w-full">
+              View All Journal Entries
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
 
-      <BottomNavigation />
+        {/* Call to Action for New Entry */}
+        <div className="w-full max-w-md text-center animate-fade-in-up">
+          <Button
+            onClick={() => navigate('/journal-prompt')}
+            className="w-full text-lg py-3 px-6 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 ease-in-out transform hover:scale-105"
+          >
+            <PlusCircle className="mr-3 h-6 w-6" />
+            Start a New Journal Entry
+          </Button>
+        </div>
+
+        <p className="text-center text-muted-foreground mt-8 text-sm max-w-md">
+          {getEncouragementMessage()}
+        </p>
+      </div>
     </PageContainer>
   );
 };

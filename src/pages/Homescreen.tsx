@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Mic, TrendingUp, Settings } from 'lucide-react';
-import HealingAvatar from '@/components/HealingAvatar';
+import Orb from '../../journaling page/Orb/Orb';
 import BottomNavigation from '@/components/BottomNavigation';
 import PageContainer from '@/components/PageContainer';
 import { MoodType, JournalEntry } from '@/types';
@@ -53,6 +53,7 @@ const Homescreen = () => {
   const todayPrompt = dailyPrompts[new Date().getDay() % dailyPrompts.length];
 
   const handleStartJournal = () => {
+    localStorage.setItem('healbit-session-mood', currentMood);
     navigate('/prompt');
   };
 
@@ -88,7 +89,15 @@ const Homescreen = () => {
 
       {/* Hero Section */}
       <div className="text-center mb-8">
-        <HealingAvatar mood={currentMood} size="lg" className="mx-auto mb-6" />
+        {/* <HealingAvatar mood={currentMood} size="lg" className="mx-auto mb-6" /> */}
+        <div className="mx-auto mb-6 w-fit">
+          <Orb 
+            forceHoverState={false} 
+            hue={currentMood === 'joy' ? 45 : currentMood === 'calm' ? 200 : currentMood === 'hope' ? 120 : currentMood === 'sadness' ? 210 : currentMood === 'anger' ? 0 : 0} 
+            innerRadius={currentMood === 'joy' ? 0.7 : currentMood === 'calm' ? 0.6 : currentMood === 'hope' ? 0.65 : currentMood === 'sadness' ? 0.5 : currentMood === 'anger' ? 0.4 : 0.6}
+            noiseScale={currentMood === 'joy' ? 0.5 : currentMood === 'calm' ? 0.7 : currentMood === 'hope' ? 0.6 : currentMood === 'sadness' ? 0.8 : currentMood === 'anger' ? 1.0 : 0.65}
+          />
+        </div>
         <h2 className="text-2xl font-bold text-foreground mb-3">
           {userName ? `Welcome back, ${userName}` : 'Begin Your Healing'}
         </h2>
@@ -168,8 +177,8 @@ const Homescreen = () => {
         <h3 className="text-lg font-medium text-foreground mb-3 text-center">
           How are you feeling?
         </h3>
-        <div className="flex justify-center space-x-3">
-          {(['joy', 'calm', 'hope', 'neutral', 'sadness'] as const).map((mood) => (
+        <div className="flex justify-center flex-wrap gap-4">
+          {(['joy', 'calm', 'hope', 'neutral', 'sadness', 'anger'] as const).map((mood) => (
             <button
               key={mood}
               onClick={() => {
@@ -177,11 +186,21 @@ const Homescreen = () => {
                 localStorage.setItem('healbit-last-mood', mood);
               }}
               className={cn(
-                'w-12 h-12 rounded-full transition-all duration-200',
-                currentMood === mood ? 'scale-110 ring-2 ring-primary ring-offset-2' : 'hover:scale-105'
+                'w-24 h-24 rounded-lg transition-all duration-200 flex flex-col items-center justify-center space-y-1 p-2',
+                currentMood === mood ? 'border-2 border-primary animate-pop-selection' : 'hover:scale-105'
               )}
             >
-              <HealingAvatar mood={mood} size="sm" />
+              <div className="w-16 h-16">
+                <Orb 
+                  forceHoverState={currentMood === mood} 
+                  hue={mood === 'joy' ? 45 : mood === 'calm' ? 200 : mood === 'hope' ? 120 : mood === 'sadness' ? 210 : mood === 'anger' ? 0 : 0}
+                  innerRadius={mood === 'joy' ? 0.7 : mood === 'calm' ? 0.6 : mood === 'hope' ? 0.65 : mood === 'sadness' ? 0.5 : mood === 'anger' ? 0.4 : 0.6}
+                  noiseScale={mood === 'joy' ? 0.5 : mood === 'calm' ? 0.7 : mood === 'hope' ? 0.6 : mood === 'sadness' ? 0.8 : mood === 'anger' ? 1.0 : 0.65}
+                />
+              </div>
+              <span className="text-xs font-medium capitalize text-foreground">
+                {mood === 'joy' ? '😊 Joy' : mood === 'calm' ? '😌 Calm' : mood === 'hope' ? '🌟 Hope' : mood === 'sadness' ? '😢 Sad' : mood === 'anger' ? '😤 Angry' : '😐 Neutral'}
+              </span>
             </button>
           ))}
         </div>

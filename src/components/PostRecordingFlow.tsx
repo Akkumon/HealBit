@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,10 +12,11 @@ interface PostRecordingFlowProps {
   confidence: number;
   isProcessing: boolean;
   mood: MoodType;
-  selectedTags: string[];
-  onTranscriptChange: (transcript: string) => void;
-  onTagsChange: (tags: string[]) => void;
+  emotions: string[];
+  onUpdateTranscript: (transcript: string) => void;
+  setEmotionTags: (tags: string[]) => void;
   onSave: () => void;
+  onStartOver: () => void;
   className?: string;
 }
 
@@ -33,10 +33,11 @@ const PostRecordingFlow: React.FC<PostRecordingFlowProps> = ({
   confidence,
   isProcessing,
   mood,
-  selectedTags,
-  onTranscriptChange,
-  onTagsChange,
+  emotions,
+  onUpdateTranscript,
+  setEmotionTags,
   onSave,
+  onStartOver,
   className
 }) => {
   const [currentStep, setCurrentStep] = useState<'transcript' | 'emotions' | 'support'>('transcript');
@@ -70,7 +71,7 @@ const PostRecordingFlow: React.FC<PostRecordingFlowProps> = ({
           transcript={transcript}
           confidence={confidence}
           isProcessing={isProcessing}
-          onTranscriptChange={onTranscriptChange}
+          onTranscriptChange={onUpdateTranscript}
           className="animate-fade-in"
         />
       )}
@@ -80,14 +81,14 @@ const PostRecordingFlow: React.FC<PostRecordingFlowProps> = ({
         <div className="space-y-4 animate-fade-in">
           <EmotionTagSelector
             mood={mood}
-            selectedTags={selectedTags}
-            onTagsChange={onTagsChange}
+            selectedTags={emotions}
+            onTagsChange={setEmotionTags}
           />
           
           <Button 
             onClick={handleSave}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12"
-            disabled={selectedTags.length === 0}
+            disabled={emotions.length === 0}
           >
             <Save className="w-4 h-4 mr-2" />
             Save My Reflection

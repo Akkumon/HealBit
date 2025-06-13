@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +20,7 @@ const RecordingIndicator: React.FC<RecordingIndicatorProps> = ({
 
   const pulseSize = {
     sm: 'w-20 h-20',
-    md: 'w-28 h-28', 
+    md: 'w-28 h-28',
     lg: 'w-32 h-32'
   };
 

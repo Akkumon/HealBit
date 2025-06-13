@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Mic, Square, Play, Pause, RotateCcw } from 'lucide-react';
 import PageContainer from '@/components/PageContainer';
 import BottomNavigation from '@/components/BottomNavigation';
-import HealingAvatar from '@/components/HealingAvatar';
+import Orb from '../../journaling page/Orb/Orb';
 import RecordingIndicator from '@/components/RecordingIndicator';
 import PostRecordingFlow from '@/components/PostRecordingFlow';
 import { useAudioRecording } from '@/hooks/useAudioRecording';
@@ -41,7 +41,9 @@ const VoiceJournal = () => {
     isProcessing,
     generateTranscript,
     updateTranscript,
-    clearTranscript
+    clearTranscript,
+    startListening,
+    stopListening
   } = useTranscription();
 
   const { saveJournalEntry } = useIndexedDB();
@@ -52,16 +54,29 @@ const VoiceJournal = () => {
     if (savedPrompt) {
       setCurrentPrompt(JSON.parse(savedPrompt));
     }
+    // Load the selected mood from Homescreen
+    const savedMood = localStorage.getItem('healbit-session-mood');
+    if (savedMood) {
+      setSelectedMood(savedMood as MoodType);
+    }
   }, []);
+
+  const handleStartRecording = () => {
+    clearTranscript(); // Clear previous transcript
+    startRecording();
+    startListening(); // Start listening for transcription
+  };
 
   const handleStopRecording = async () => {
     stopRecording();
+    stopListening(); // Stop listening for transcription
     setIsPostRecording(true);
     
-    // Generate transcript after recording stops
+    // Generate transcript after recording stops (this will now just return the current transcript)
     if (duration > 0) {
       try {
-        await generateTranscript(duration);
+        // The transcript is already live, so we just finalize it here if needed
+        await generateTranscript(duration); 
       } catch (error) {
         console.error('Failed to generate transcript:', error);
       }
@@ -147,7 +162,11 @@ const VoiceJournal = () => {
           {/* Recording Interface */}
           <div className="text-center mb-6 space-y-6">
             <div className="relative">
-              <HealingAvatar mood={selectedMood} size="lg" className="mx-auto" />
+              <div className="mx-auto w-fit">
+                <Orb
+                  forceHoverState={isRecording}
+                />
+              </div>
               {isRecording && (
                 <RecordingIndicator
                   isRecording={isRecording}
@@ -164,12 +183,17 @@ const VoiceJournal = () => {
               <p className="text-lg font-mono text-foreground">
                 {formatDuration(duration)}
               </p>
+              {isRecording && transcript && (
+                <p className="text-sm text-muted-foreground italic mt-2">
+                  {transcript}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-center space-x-4">
               {!isRecording && !audioUrl && (
                 <Button
-                  onClick={startRecording}
+                  onClick={handleStartRecording}
                   size="lg"
                   className="rounded-full w-20 h-20 bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-105"
                 >
@@ -248,11 +272,11 @@ const VoiceJournal = () => {
           confidence={confidence}
           isProcessing={isProcessing}
           mood={selectedMood}
-          selectedTags={selectedTags}
-          onTranscriptChange={updateTranscript}
-          onTagsChange={setSelectedTags}
+          emotions={selectedTags}
           onSave={handleSave}
-          className="mb-6"
+          onStartOver={handleStartOver}
+          onUpdateTranscript={updateTranscript}
+          setEmotionTags={setSelectedTags}
         />
       )}
 
