@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Calendar } from '@/components/ui/calendar';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, PlusCircle } from 'lucide-react';
-import WeatherAnimation from '@/components/WeatherAnimation';
+import { ArrowLeft, ArrowRight, PlusCircle } from 'lucide-react';
+import ThreeDWeatherScene from '@/components/ThreeDWeatherScene';
 import { getDailyStreaks, getMoodFrequency } from '@/lib/moodAnalysis';
 import PageContainer from '@/components/PageContainer';
+import BottomNavigation from '@/components/BottomNavigation';
 import { MoodType, JournalEntry } from '@/types';
 import { useIndexedDB } from '@/hooks/useIndexedDB';
 import { EmotionScale } from '@/types/sentiment';
@@ -37,18 +38,12 @@ const HealingTracker = () => {
     if (totalEntriesCount === 0) return 'neutral';
 
     const sortedMoods = Object.entries(moodFrequency).sort(([, countA], [, countB]) => (countB as number) - (countA as number));
-    const mostFrequentMood = sortedMoods[0][0];
+    const mostFrequentMood = sortedMoods[0][0] as MoodType;
 
-    // Map to specific moods for the landscape
-    if (mostFrequentMood === 'happy' || mostFrequentMood === 'excited') return 'joy';
-    if (mostFrequentMood === 'calm' || mostFrequentMood === 'peaceful') return 'calm';
-    if (mostFrequentMood === 'hopeful' || mostFrequentMood === 'grateful') return 'hope';
-    if (mostFrequentMood === 'sad' || mostFrequentMood === 'lonely') return 'sadness';
-    if (mostFrequentMood === 'angry' || mostFrequentMood === 'frustrated') return 'anger';
-    return 'neutral';
+    return mostFrequentMood;
   }, [moodFrequency]);
 
-  // Map MoodType to EmotionScale for WeatherAnimation (1-5)
+  // Map MoodType to EmotionScale for ThreeDWeatherScene (1-5)
   const moodToEmotionScaleMap: Record<MoodType, EmotionScale> = {
     anger: 1,
     sadness: 2,
@@ -69,21 +64,8 @@ const HealingTracker = () => {
                entryDate.getMonth() === date.getMonth() &&
                entryDate.getFullYear() === date.getFullYear();
       });
-      // TODO: Display entries for the selected day or navigate to a daily summary
       console.log('Entries for selected day:', entriesForDay);
     }
-  };
-
-  const getWeatherDescription = (mood: MoodType) => {
-    const descriptions = {
-      joy: 'Sunny & Bright',
-      calm: 'Peaceful Clear',
-      hope: 'Partly Sunny',
-      neutral: 'Cloudy',
-      sadness: 'Light Rain',
-      anger: 'Stormy'
-    };
-    return descriptions[mood] || 'Cloudy';
   };
 
   const getEncouragementMessage = () => {
@@ -108,102 +90,123 @@ const HealingTracker = () => {
 
   return (
     <PageContainer>
-      <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-8">
-        <h1 className="text-4xl font-extrabold text-primary-foreground text-center animate-fade-in-up">
-          Your Healing Journey
-        </h1>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-xl font-semibold text-foreground">Healing Weather</h1>
+        <div className="w-10" />
+      </div>
 
-        <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Streaks Card */}
-          <Card className="bg-card/70 backdrop-blur-sm text-card-foreground shadow-lg animate-fade-in-left">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold">Healing Streaks</CardTitle>
-              <CardDescription>Consistency is key to healing.</CardDescription>
-            </CardHeader>
-            <CardContent className="text-center text-5xl font-extrabold text-primary">
-              {streaks}
-              <span className="text-xl text-card-foreground ml-2">days</span>
-            </CardContent>
-          </Card>
+      {/* 3D Emotional Weather Landscape */}
+      <Card className="mb-6 border-primary/20 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="text-lg">Your Emotional Weather</CardTitle>
+          <CardDescription>
+            A living landscape that reflects your healing journey
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ThreeDWeatherScene
+            emotionScale={currentEmotionScale}
+            mood={dominantMoodForLandscape}
+            size="lg"
+            className="w-full h-64"
+          />
+        </CardContent>
+      </Card>
 
-          {/* Mood Summary Card */}
-          <Card className="bg-card/70 backdrop-blur-sm text-card-foreground shadow-lg animate-fade-in-right">
-            <CardHeader>
-              <CardTitle className="text-2xl font-bold">Mood Summary</CardTitle>
-              <CardDescription>Your emotional landscape over time.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-wrap justify-center gap-2">
-              {Object.entries(moodFrequency).length > 0 ? (
-                Object.entries(moodFrequency)
-                  .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
-                  .map(([mood, count]) => (
-                    <div
-                      key={mood}
-                      className={`flex items-center space-x-1 p-2 rounded-lg ${getMoodColorClass(mood)}`}
-                    >
-                      <span className="font-medium capitalize">{mood}</span>
-                      <span className="text-sm opacity-70">({count})</span>
-                    </div>
-                  ))
-              ) : (
-                <p className="text-muted-foreground">No entries yet. Start journaling to see your moods!</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Interactive Emotional Landscape */}
-        <Card className="w-full max-w-4xl bg-card/70 backdrop-blur-sm text-card-foreground shadow-lg animate-fade-in-up">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Your Emotional Weather</CardTitle>
-            <CardDescription>Visualize your current emotional state.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-64 sm:h-80 md:h-96 w-full flex items-center justify-center p-0">
-            <WeatherAnimation mood={dominantMoodForLandscape} emotionScale={currentEmotionScale} />
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-primary mb-1">{journalEntries.length}</div>
+            <p className="text-sm text-muted-foreground">Reflections</p>
           </CardContent>
         </Card>
-
-        {/* Calendar Card */}
-        <Card className="w-full max-w-4xl bg-card/70 backdrop-blur-sm text-card-foreground shadow-lg animate-fade-in-down">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">Journal History</CardTitle>
-            <CardDescription>Browse your past reflections.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDayClick}
-              className="rounded-md border bg-background text-foreground"
-            />
-            {selectedDate && (
-              <div className="mt-4 text-center text-lg">
-                You selected: <span className="font-bold">{selectedDate.toDateString()}</span>
-              </div>
-            )}
-            <Separator className="my-4 w-full" />
-            <Button onClick={() => navigate('/journal')} className="w-full">
-              View All Journal Entries
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+        
+        <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-accent-foreground mb-1">{streaks}</div>
+            <p className="text-sm text-muted-foreground">Day Streak</p>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Call to Action for New Entry */}
-        <div className="w-full max-w-md text-center animate-fade-in-up">
-          <Button
-            onClick={() => navigate('/journal-prompt')}
-            className="w-full text-lg py-3 px-6 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 ease-in-out transform hover:scale-105"
-          >
-            <PlusCircle className="mr-3 h-6 w-6" />
-            Start a New Journal Entry
-          </Button>
-        </div>
+      {/* Mood Summary */}
+      <Card className="mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="text-lg">Emotional Patterns</CardTitle>
+          <CardDescription>Your most frequent emotional states</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {Object.entries(moodFrequency).length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(moodFrequency)
+                .sort(([, countA], [, countB]) => (countB as number) - (countA as number))
+                .slice(0, 5)
+                .map(([mood, count]) => (
+                  <div
+                    key={mood}
+                    className={cn(
+                      'flex items-center space-x-1 px-3 py-1 rounded-full text-sm',
+                      getMoodColorClass(mood as MoodType)
+                    )}
+                  >
+                    <span className="font-medium capitalize">{mood}</span>
+                    <span className="text-xs opacity-70">({count})</span>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-center py-4">
+              Start journaling to see your emotional patterns
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
-        <p className="text-center text-muted-foreground mt-8 text-sm max-w-md">
+      {/* Calendar */}
+      <Card className="mb-6 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle className="text-lg">Journal History</CardTitle>
+          <CardDescription>Browse your past reflections</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDayClick}
+            className="rounded-md border bg-background text-foreground"
+          />
+          {selectedDate && (
+            <div className="mt-4 text-center text-sm">
+              Selected: <span className="font-medium">{selectedDate.toDateString()}</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Call to Action */}
+      <div className="text-center mb-6">
+        <Button
+          onClick={() => navigate('/prompt')}
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12"
+        >
+          <PlusCircle className="mr-2 h-5 w-5" />
+          Start New Reflection
+        </Button>
+      </div>
+
+      {/* Encouragement */}
+      <div className="bg-accent/10 dark:bg-accent/20 rounded-lg p-4 text-center mb-6">
+        <p className="text-sm text-accent-foreground">
           {getEncouragementMessage()}
         </p>
       </div>
+
+      <BottomNavigation />
     </PageContainer>
   );
 };

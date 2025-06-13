@@ -218,6 +218,18 @@
   50% { opacity: 0.6; transform: scale(1.1); }
 }
 
+/* 3D Weather Scene Animations */
+@keyframes rain-fall {
+  0% { transform: translateY(-100%) rotate(25deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(200%) rotate(25deg); opacity: 0; }
+}
+
+@keyframes sparkle-fade {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
 /* Onboarding animations */
 @keyframes fade-slide-in {
   0% { 
@@ -273,6 +285,10 @@
   animation: mic-pulse 1.5s ease-out infinite;
 }
 
+.animate-pop-selection {
+  animation: pop-selection 0.2s ease-out;
+}
+
 /* Weather Animation Classes */
 .weather-icon[data-animation="storm-flash"] {
   animation: storm-flash 2s infinite;
@@ -312,6 +328,14 @@
   animation: sun-glow 3s ease-in-out infinite;
 }
 
+.animate-rain-fall {
+  animation: rain-fall 1s infinite linear;
+}
+
+.animate-sparkle-fade {
+  animation: sparkle-fade 1s infinite ease-in-out;
+}
+
 /* Mobile optimizations */
 @supports (padding: max(0px)) {
   .safe-area-inset {
@@ -338,7 +362,9 @@ button, [role="button"] {
   .weather-icon,
   .storm-lightning,
   .rain-drop,
-  .sun-glow {
+  .sun-glow,
+  .animate-rain-fall,
+  .animate-sparkle-fade {
     animation: none;
   }
 
