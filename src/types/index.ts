@@ -1,53 +1,36 @@
 
-export type MoodType = 'joy' | 'calm' | 'hope' | 'sadness' | 'anger' | 'neutral';
-
-export interface DailyPrompt {
-  id: string;
-  category: 'gratitude' | 'self-compassion' | 'growth' | 'reflection' | 'hope' | 'processing' | 'strength';
-  text: string;
-  followUp?: string;
-}
+// Core types for HealBit application
+export type MoodType = 'joy' | 'sadness' | 'anger' | 'neutral' | 'calm' | 'hope';
 
 export interface JournalEntry {
   id: string;
   date: string;
-  promptId: string;
-  audioUrl?: string;
-  audioBlob?: Blob;
+  mood: MoodType;
   transcript?: string;
-  transcriptConfidence?: number;
-  mood: MoodType;
-  emotions: string[];
-  duration: number;
-  processingComplete: boolean;
-  hasAudio: boolean;
-}
-
-export interface Affirmation {
-  id: string;
-  mood: MoodType;
-  text: string;
-  category: string;
-}
-
-export interface AvatarPreferences {
-  primaryColor: string;
-  animationStyle: 'gentle' | 'vibrant' | 'minimal';
-  size: 'sm' | 'md' | 'lg';
+  audioBlob?: Blob;
+  sentiment?: number;
+  tags?: string[];
+  affirmation?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface UserProfile {
+  id: string;
   name?: string;
-  avatar: AvatarPreferences;
-  joinDate: string;
-  totalEntries: number;
-  currentStreak: number;
-  longestStreak: number;
+  avatar?: string;
+  preferences: {
+    theme: 'light' | 'dark' | 'system';
+    notifications: boolean;
+    privacy: 'private' | 'anonymous';
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface HealingProgress {
-  date: string;
-  mood: MoodType;
-  entryCount: number;
-  notes?: string;
+export interface AppSettings {
+  theme: 'light' | 'dark' | 'system';
+  dataRetention: number; // days
+  audioQuality: 'low' | 'medium' | 'high';
+  notifications: boolean;
 }

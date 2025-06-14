@@ -1,94 +1,70 @@
 
-import { useState, useCallback } from 'react';
 import { MoodType } from '@/types';
 
 export interface EmotionTag {
   id: string;
   label: string;
-  category: 'positive' | 'processing' | 'difficult';
   icon: string;
+  category: 'positive' | 'processing' | 'difficult';
   color: string;
 }
 
 const emotionTags: EmotionTag[] = [
-  // Positive
-  { id: 'grateful', label: 'Grateful', category: 'positive', icon: '🙏', color: 'bg-green-100 text-green-800' },
-  { id: 'hopeful', label: 'Hopeful', category: 'positive', icon: '🌟', color: 'bg-yellow-100 text-yellow-800' },
-  { id: 'peaceful', label: 'Peaceful', category: 'positive', icon: '🕊️', color: 'bg-blue-100 text-blue-800' },
-  { id: 'proud', label: 'Proud', category: 'positive', icon: '💪', color: 'bg-purple-100 text-purple-800' },
-  { id: 'loved', label: 'Loved', category: 'positive', icon: '💕', color: 'bg-pink-100 text-pink-800' },
+  // Positive emotions
+  { id: 'grateful', label: 'Grateful', icon: '🙏', category: 'positive', color: 'text-green-600' },
+  { id: 'hopeful', label: 'Hopeful', icon: '🌟', category: 'positive', color: 'text-yellow-600' },
+  { id: 'peaceful', label: 'Peaceful', icon: '🕊️', category: 'positive', color: 'text-blue-600' },
+  { id: 'loved', label: 'Loved', icon: '💝', category: 'positive', color: 'text-pink-600' },
+  { id: 'proud', label: 'Proud', icon: '👏', category: 'positive', color: 'text-purple-600' },
   
-  // Processing
-  { id: 'confused', label: 'Confused', category: 'processing', icon: '🤔', color: 'bg-gray-100 text-gray-800' },
-  { id: 'thoughtful', label: 'Thoughtful', category: 'processing', icon: '💭', color: 'bg-indigo-100 text-indigo-800' },
-  { id: 'uncertain', label: 'Uncertain', category: 'processing', icon: '🌫️', color: 'bg-slate-100 text-slate-800' },
-  { id: 'processing', label: 'Processing', category: 'processing', icon: '🔄', color: 'bg-teal-100 text-teal-800' },
-  { id: 'reflective', label: 'Reflective', category: 'processing', icon: '🪞', color: 'bg-cyan-100 text-cyan-800' },
+  // Processing emotions
+  { id: 'confused', label: 'Confused', icon: '🤔', category: 'processing', color: 'text-gray-600' },
+  { id: 'nostalgic', label: 'Nostalgic', icon: '📸', category: 'processing', color: 'text-amber-600' },
+  { id: 'reflective', label: 'Reflective', icon: '🪞', category: 'processing', color: 'text-indigo-600' },
+  { id: 'curious', label: 'Curious', icon: '🔍', category: 'processing', color: 'text-teal-600' },
   
-  // Difficult
-  { id: 'sad', label: 'Sad', category: 'difficult', icon: '😢', color: 'bg-blue-100 text-blue-800' },
-  { id: 'angry', label: 'Angry', category: 'difficult', icon: '😤', color: 'bg-red-100 text-red-800' },
-  { id: 'overwhelmed', label: 'Overwhelmed', category: 'difficult', icon: '😵', color: 'bg-orange-100 text-orange-800' },
-  { id: 'lonely', label: 'Lonely', category: 'difficult', icon: '🌑', color: 'bg-violet-100 text-violet-800' },
-  { id: 'anxious', label: 'Anxious', category: 'difficult', icon: '😰', color: 'bg-amber-100 text-amber-800' },
+  // Difficult emotions
+  { id: 'heartbroken', label: 'Heartbroken', icon: '💔', category: 'difficult', color: 'text-red-600' },
+  { id: 'lonely', label: 'Lonely', icon: '🌙', category: 'difficult', color: 'text-slate-600' },
+  { id: 'betrayed', label: 'Betrayed', icon: '🗡️', category: 'difficult', color: 'text-orange-600' },
+  { id: 'overwhelmed', label: 'Overwhelmed', icon: '🌊', category: 'difficult', color: 'text-blue-800' },
+  { id: 'regretful', label: 'Regretful', icon: '😔', category: 'difficult', color: 'text-brown-600' },
 ];
 
 export const useEmotionTags = () => {
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [recentTags, setRecentTags] = useState<string[]>([]);
+  const getSuggestedTags = (mood: MoodType): EmotionTag[] => {
+    switch (mood) {
+      case 'joy':
+        return emotionTags.filter(tag => ['grateful', 'hopeful', 'loved', 'proud'].includes(tag.id));
+      case 'calm':
+        return emotionTags.filter(tag => ['peaceful', 'reflective', 'grateful'].includes(tag.id));
+      case 'hope':
+        return emotionTags.filter(tag => ['hopeful', 'curious', 'reflective'].includes(tag.id));
+      case 'neutral':
+        return emotionTags.filter(tag => ['confused', 'reflective', 'curious'].includes(tag.id));
+      case 'sadness':
+        return emotionTags.filter(tag => ['heartbroken', 'lonely', 'nostalgic', 'regretful'].includes(tag.id));
+      case 'anger':
+        return emotionTags.filter(tag => ['betrayed', 'overwhelmed', 'regretful'].includes(tag.id));
+      default:
+        return [];
+    }
+  };
 
-  const getSuggestedTags = useCallback((mood: MoodType): EmotionTag[] => {
-    const moodToCategory: Record<MoodType, EmotionTag['category'][]> = {
-      joy: ['positive'],
-      calm: ['positive', 'processing'],
-      hope: ['positive'],
-      neutral: ['processing'],
-      sadness: ['difficult', 'processing'],
-      anger: ['difficult']
-    };
-    
-    const categories = moodToCategory[mood] || ['processing'];
-    return emotionTags.filter(tag => categories.includes(tag.category));
-  }, []);
-
-  const toggleTag = useCallback((tagId: string) => {
-    setSelectedTags(prev => {
-      const newTags = prev.includes(tagId)
-        ? prev.filter(id => id !== tagId)
-        : [...prev, tagId];
-      
-      // Update recent tags
-      if (!prev.includes(tagId)) {
-        setRecentTags(current => {
-          const updated = [tagId, ...current.filter(id => id !== tagId)];
-          return updated.slice(0, 5); // Keep only 5 most recent
-        });
-      }
-      
-      return newTags;
-    });
-  }, []);
-
-  const clearTags = useCallback(() => {
-    setSelectedTags([]);
-  }, []);
-
-  const getTagById = useCallback((id: string): EmotionTag | undefined => {
-    return emotionTags.find(tag => tag.id === id);
-  }, []);
-
-  const getTagsByCategory = useCallback((category: EmotionTag['category']): EmotionTag[] => {
+  const getTagsByCategory = (category: EmotionTag['category']): EmotionTag[] => {
     return emotionTags.filter(tag => tag.category === category);
-  }, []);
+  };
+
+  const toggleTag = (selectedTags: string[], tagId: string): string[] => {
+    return selectedTags.includes(tagId)
+      ? selectedTags.filter(id => id !== tagId)
+      : [...selectedTags, tagId];
+  };
 
   return {
-    allTags: emotionTags,
-    selectedTags,
-    recentTags,
+    emotionTags,
     getSuggestedTags,
+    getTagsByCategory,
     toggleTag,
-    clearTags,
-    getTagById,
-    getTagsByCategory
   };
 };

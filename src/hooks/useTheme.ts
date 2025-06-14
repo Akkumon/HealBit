@@ -1,56 +1,48 @@
+
 import { useState, useEffect } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 
 export const useTheme = () => {
-  const [theme, setTheme] = useState<Theme>('system');
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem('healbit-theme');
+    return (saved as Theme) || 'system';
+  });
+
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Get saved theme or default to system
-    const savedTheme = localStorage.getItem('healbit-theme') as Theme || 'system';
-    setTheme(savedTheme);
-    applyTheme(savedTheme);
-  }, []);
-
-  const applyTheme = (newTheme: Theme) => {
-    const root = document.documentElement;
-    
-    if (newTheme === 'system') {
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      root.setAttribute('data-theme', systemPrefersDark ? 'dark' : 'light');
-    } else {
-      root.setAttribute('data-theme', newTheme);
-    }
-  };
-
-  const changeTheme = (newTheme: Theme) => {
-    setTheme(newTheme);
-    localStorage.setItem('healbit-theme', newTheme);
-    applyTheme(newTheme);
-  };
-
-  // Listen for system theme changes
-  useEffect(() => {
-    if (theme === 'system') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = () => applyTheme('system');
+    const updateTheme = () => {
+      let effectiveTheme: 'light' | 'dark';
       
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
-    }
-  }, [theme]);
+      if (theme === 'system') {
+        effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      } else {
+        effectiveTheme = theme;
+      }
 
-  const getCurrentTheme = (): 'light' | 'dark' => {
-    if (theme === 'system') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return theme;
-  };
+      setIsDark(effectiveTheme === 'dark');
+      document.documentElement.setAttribute('data-theme', effectiveTheme);
+      
+      if (effectiveTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    updateTheme();
+    localStorage.setItem('healbit-theme', theme);
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', updateTheme);
+    
+    return () => mediaQuery.removeEventListener('change', updateTheme);
+  }, [theme]);
 
   return {
     theme,
-    setTheme: changeTheme,
-    currentTheme: getCurrentTheme(),
-    isDark: getCurrentTheme() === 'dark'
+    setTheme,
+    isDark,
   };
 };

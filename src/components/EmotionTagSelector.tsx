@@ -19,7 +19,7 @@ const EmotionTagSelector: React.FC<EmotionTagSelectorProps> = ({
   onTagsChange,
   className
 }) => {
-  const { getSuggestedTags, getTagsByCategory, toggleTag: hookToggleTag } = useEmotionTags();
+  const { getSuggestedTags, getTagsByCategory } = useEmotionTags();
 
   const toggleTag = (tagId: string) => {
     const newTags = selectedTags.includes(tagId)
@@ -35,7 +35,7 @@ const EmotionTagSelector: React.FC<EmotionTagSelectorProps> = ({
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
         <div className="flex flex-wrap gap-2">
-          {tags.map((tag) => {
+          {tags.map((tag: EmotionTag) => {
             const isSelected = selectedTags.includes(tag.id);
             return (
               <Button
@@ -61,13 +61,13 @@ const EmotionTagSelector: React.FC<EmotionTagSelectorProps> = ({
 
   const suggestedTags = getSuggestedTags(mood);
   const otherPositive = getTagsByCategory('positive').filter(
-    tag => !suggestedTags.includes(tag)
+    (tag: EmotionTag) => !suggestedTags.includes(tag)
   );
   const otherProcessing = getTagsByCategory('processing').filter(
-    tag => !suggestedTags.includes(tag)
+    (tag: EmotionTag) => !suggestedTags.includes(tag)
   );
   const otherDifficult = getTagsByCategory('difficult').filter(
-    tag => !suggestedTags.includes(tag)
+    (tag: EmotionTag) => !suggestedTags.includes(tag)
   );
 
   return (

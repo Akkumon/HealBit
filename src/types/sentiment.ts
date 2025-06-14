@@ -1,22 +1,17 @@
+
+// Sentiment analysis types
 export type EmotionScale = 1 | 2 | 3 | 4 | 5;
 
 export interface SentimentData {
-  score: EmotionScale;
-  trend: 'improving' | 'stable' | 'declining';
-  weeklyAverage: number;
-  message: string;
+  score: number; // -1 to 1
+  magnitude: number; // 0 to 1
+  emotion: EmotionScale;
+  confidence: number; // 0 to 1
 }
 
-export interface AvatarEvolution {
-  complexity: number; // 0-1 based on entryCount
-  emotionalState: number; // 0-1 based on mood average
-  openness: number; // 0-1 based on recent trends
-  glowIntensity: number; // 0-1 based on consistency
-}
-
-export interface WeatherState {
-  type: 'storm' | 'heavyRain' | 'cloudy' | 'partlySunny' | 'sunny';
-  label: string;
-  icon: string;
-  description: string;
+export interface EmotionAnalysis {
+  primary: string;
+  secondary?: string;
+  intensity: EmotionScale;
+  sentiment: SentimentData;
 }
