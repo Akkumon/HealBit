@@ -1,0 +1,169 @@
+
+/* Weather Animation Effects */
+
+.weather-sky {
+  animation: sky-breathe 8s ease-in-out infinite;
+}
+
+@keyframes sky-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.01); }
+}
+
+/* Cloud Animations */
+.cloud {
+  width: 60px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50px;
+  position: relative;
+  animation: cloud-float 12s ease-in-out infinite;
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+}
+
+.cloud::before {
+  width: 25px;
+  height: 25px;
+  top: -12px;
+  left: 8px;
+}
+
+.cloud::after {
+  width: 35px;
+  height: 35px;
+  top: -15px;
+  right: 8px;
+}
+
+.cloud-1 {
+  animation-delay: 0s;
+}
+
+.cloud-2 {
+  animation-delay: -4s;
+}
+
+.cloud-3 {
+  animation-delay: -8s;
+}
+
+@keyframes cloud-float {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(10px) translateY(-3px); }
+  50% { transform: translateX(-5px) translateY(2px); }
+  75% { transform: translateX(8px) translateY(-1px); }
+}
+
+/* Rain Drop Animations */
+.rain-drop {
+  width: 2px;
+  height: 12px;
+  border-radius: 0 0 2px 2px;
+  animation: rain-fall linear infinite;
+}
+
+@keyframes rain-fall {
+  0% {
+    transform: translateY(-100vh) rotate(15deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+/* Storm Lightning */
+.storm-lightning {
+  background: linear-gradient(45deg, transparent 48%, rgba(255, 255, 255, 0.8) 50%, transparent 52%);
+  animation: lightning-flash 3s infinite;
+}
+
+@keyframes lightning-flash {
+  0%, 90%, 100% { opacity: 0; }
+  5%, 10% { opacity: 1; }
+}
+
+/* Sun Rays */
+.sun-rays {
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(circle, rgba(255, 223, 0, 0.8) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: sun-glow 4s ease-in-out infinite;
+}
+
+.sun-rays::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: 
+    linear-gradient(0deg, transparent 48%, rgba(255, 223, 0, 0.3) 50%, transparent 52%),
+    linear-gradient(45deg, transparent 48%, rgba(255, 223, 0, 0.3) 50%, transparent 52%),
+    linear-gradient(90deg, transparent 48%, rgba(255, 223, 0, 0.3) 50%, transparent 52%),
+    linear-gradient(135deg, transparent 48%, rgba(255, 223, 0, 0.3) 50%, transparent 52%);
+  animation: sun-rotate 8s linear infinite;
+}
+
+@keyframes sun-glow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+@keyframes sun-rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Sparkle Effects */
+.sparkle {
+  animation: sparkle-twinkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+/* Nimbus Companion */
+.nimbus-companion {
+  animation: nimbus-float 6s ease-in-out infinite;
+}
+
+@keyframes nimbus-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .weather-sky,
+  .cloud,
+  .rain-drop,
+  .storm-lightning,
+  .sun-rays,
+  .sparkle,
+  .nimbus-companion {
+    animation: none;
+  }
+  
+  .sun-rays::before {
+    animation: none;
+  }
+}

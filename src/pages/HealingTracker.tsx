@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn, getMoodColorClass } from '@/lib/utils';
@@ -7,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, PlusCircle } from 'lucide-react';
 import ThreeDWeatherScene from '@/components/ThreeDWeatherScene';
+import WeatherTracker from '@/components/WeatherTracker/WeatherTracker';
 import { getDailyStreaks, getMoodFrequency } from '@/lib/moodAnalysis';
 import PageContainer from '@/components/PageContainer';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -99,23 +101,11 @@ const HealingTracker = () => {
         <div className="w-10" />
       </div>
 
-      {/* 3D Emotional Weather Landscape */}
-      <Card className="mb-6 border-primary/20 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-lg">Your Emotional Weather</CardTitle>
-          <CardDescription>
-            A living landscape that reflects your healing journey
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <ThreeDWeatherScene
-            emotionScale={currentEmotionScale}
-            mood={dominantMoodForLandscape}
-            size="lg"
-            className="w-full h-64"
-          />
-        </CardContent>
-      </Card>
+      {/* New Inner Forecast Weather Tracker */}
+      <WeatherTracker 
+        mood={dominantMoodForLandscape} 
+        className="mb-6"
+      />
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 gap-4 mb-6">
