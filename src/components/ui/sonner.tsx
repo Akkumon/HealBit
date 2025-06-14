@@ -1,39 +1,29 @@
+import { useTheme } from "next-themes"
+import { Toaster as Sonner, toast } from "sonner"
 
-import * as React from "react"
-import * as ToastPrimitives from "@radix-ui/react-toast"
-import { cn } from "@/lib/utils"
+type ToasterProps = React.ComponentProps<typeof Sonner>
 
-const ToastProvider = ToastPrimitives.Provider
+const Toaster = ({ ...props }: ToasterProps) => {
+  const { theme = "system" } = useTheme()
 
-const Toast = React.forwardRef<
-  React.ElementRef<typeof ToastPrimitives.Root>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root>
->(({ className, ...props }, ref) => {
   return (
-    <ToastPrimitives.Root
-      ref={ref}
-      className={cn(
-        "group relative flex w-full max-w-[368px] translate-y-0 flex-col gap-1 rounded-md border border-border bg-card p-4 shadow-lg transition-all data-[state=closed]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:zoom-out-95 data-[side=top]:translate-y-[-100%] data-[side=bottom]:translate-y-[100%] data-[side=left]:translate-x-[-100%] data-[side=right]:translate-x-[100%]",
-        className
-      )}
+    <Sonner
+      theme={theme as ToasterProps["theme"]}
+      className="toaster group"
+      toastOptions={{
+        classNames: {
+          toast:
+            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+          description: "group-[.toast]:text-muted-foreground",
+          actionButton:
+            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+          cancelButton:
+            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+        },
+      }}
       {...props}
-    >
-      <div className="grid gap-1 pr-8">
-        {props.title && (
-          <ToastPrimitives.Title className="text-sm font-semibold leading-none text-foreground">
-            {props.title}
-          </ToastPrimitives.Title>
-        )}
-        {props.description && (
-          <ToastPrimitives.Description className="text-sm text-muted-foreground">
-            {props.description}
-          </ToastPrimitives.Description>
-        )}
-      </div>
-      <ToastPrimitives.Viewport />
-    </ToastPrimitives.Root>
+    />
   )
-})
-Toast.displayName = ToastPrimitives.Root.displayName
+}
 
-export { Toast as Toaster }
+export { Toaster, toast }

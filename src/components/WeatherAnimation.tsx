@@ -1,151 +1,178 @@
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { EmotionScale } from '@/types/sentiment';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
+import { MoodType } from '@/types';
 
 interface WeatherAnimationProps {
-  sentiment: {
-    emotion: EmotionScale;
-    score: number;
-    magnitude: number;
-    confidence: number;
-  };
+  emotionScale: EmotionScale;
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
+  mood?: MoodType;
 }
 
-const WeatherAnimation: React.FC<WeatherAnimationProps> = ({
-  sentiment,
-  className
+const WeatherAnimation: React.FC<WeatherAnimationProps> = ({ 
+  emotionScale, 
+  size = 'md',
+  className,
+  mood
 }) => {
   const { isDark } = useTheme();
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    setIsAnimating(true);
-    const timer = setTimeout(() => setIsAnimating(false), 3000);
-    return () => clearTimeout(timer);
-  }, [sentiment]);
-
-  // Weather states based on emotion scale
-  const weatherStates: Record<EmotionScale, {
-    icon: string;
-    bgClass: string;
-    animation: string;
-    description: string;
-    particles: string;
-    particleCount: number;
-    hueShift: number;
-  }> = {
-    1: {
-      icon: '⛈️',
-      bgClass: isDark ? 'from-gray-800 to-gray-900' : 'from-gray-700 to-gray-900',
-      animation: 'storm-flash',
-      description: 'Weathering the storm together',
-      particles: '💧',
-      particleCount: 20,
-      hueShift: 0
-    },
-    2: {
-      icon: '🌧️',
-      bgClass: isDark ? 'from-blue-800 to-gray-800' : 'from-blue-600 to-gray-700',
-      animation: 'gentle-rain',
-      description: 'Gentle rain brings renewal',
-      particles: '💧',
-      particleCount: 15,
-      hueShift: 210
-    },
-    3: {
-      icon: '⛅',
-      bgClass: isDark ? 'from-gray-600 to-blue-700' : 'from-gray-400 to-blue-500',
-      animation: 'partly-cloudy',
-      description: 'Clouds are starting to part',
-      particles: '☁️',
-      particleCount: 8,
-      hueShift: 180
-    },
-    4: {
-      icon: '🌤️',
-      bgClass: isDark ? 'from-blue-500 to-yellow-600' : 'from-blue-400 to-yellow-500',
-      animation: 'sun-peek',
-      description: 'Sunshine beginning to emerge',
-      particles: '✨',
-      particleCount: 12,
-      hueShift: 120
-    },
-    5: {
-      icon: '☀️',
-      bgClass: isDark ? 'from-yellow-500 to-orange-500' : 'from-yellow-400 to-orange-400',
-      animation: 'bright-sunshine',
-      description: 'Beautiful clear skies ahead',
-      particles: '✨',
-      particleCount: 25,
-      hueShift: 60
-    }
+  
+  const sizeClasses = {
+    sm: 'w-12 h-12',
+    md: 'w-16 h-16',
+    lg: 'w-24 h-24'
   };
 
-  const currentWeather = weatherStates[sentiment.emotion];
+  const weatherStates = {
+    1: { // Storm (Anger/Extreme Sadness)
+      icon: '⛈️',
+      bgClass: isDark 
+        ? 'from-gray-800 to-gray-900' 
+        : 'from-gray-700 to-gray-900',
+      animation: 'storm-flash',
+      description: 'Weathering the storm together',
+      particleEffect: 'rain',
+      particleColor: isDark ? 'rgba(173,216,230,0.5)' : 'rgba(100,149,237,0.5)',
+      particleCount: 50,
+      particleSpeed: 1.5,
+      hueShift: 0,
+    },
+    2: { // Heavy Rain (Sadness)
+      icon: '🌧️',
+      bgClass: isDark 
+        ? 'from-blue-500 to-gray-700' 
+        : 'from-blue-400 to-gray-600',
+      animation: 'rain-drops',
+      description: 'Processing through the rain',
+      particleEffect: 'rain',
+      particleColor: isDark ? 'rgba(173,216,230,0.7)' : 'rgba(100,149,237,0.7)',
+      particleCount: 30,
+      particleSpeed: 1,
+      hueShift: 200,
+    },
+    3: { // Cloudy (Neutral)
+      icon: '☁️',
+      bgClass: isDark 
+        ? 'from-gray-400 to-gray-600' 
+        : 'from-gray-300 to-gray-500',
+      animation: 'cloud-drift',
+      description: 'Gentle clouds of reflection',
+      particleEffect: 'none',
+      particleColor: '',
+      particleCount: 0,
+      particleSpeed: 0,
+      hueShift: 0,
+    },
+    4: { // Partly Sunny (Hope)
+      icon: '⛅',
+      bgClass: isDark 
+        ? 'from-yellow-300 to-blue-400' 
+        : 'from-yellow-200 to-blue-300',
+      animation: 'sun-peek',
+      description: 'Hope breaking through',
+      particleEffect: 'sparkle',
+      particleColor: isDark ? 'rgba(255,255,100,0.8)' : 'rgba(255,255,0,0.8)',
+      particleCount: 15,
+      particleSpeed: 0.8,
+      hueShift: 60,
+    },
+    5: { // Sunny (Joy)
+      icon: '☀️',
+      bgClass: isDark 
+        ? 'from-yellow-400 to-orange-400' 
+        : 'from-yellow-300 to-orange-300',
+      animation: 'sun-rays',
+      description: 'Bright and beautiful',
+      particleEffect: 'sparkle',
+      particleColor: isDark ? 'rgba(255,223,0,0.9)' : 'rgba(255,215,0,0.9)',
+      particleCount: 25,
+      particleSpeed: 0.5,
+      hueShift: 40,
+    }
+  } as const;
+
+  const weather = weatherStates[emotionScale];
+
+  const dynamicBgStyle = {};
 
   return (
     <div className={cn(
-      'relative overflow-hidden rounded-xl p-8 text-center text-white transition-all duration-1000',
-      `bg-gradient-to-br ${currentWeather.bgClass}`,
-      isAnimating && 'scale-105',
+      'relative flex items-center justify-center rounded-full bg-gradient-to-br overflow-hidden transition-all duration-1000',
+      sizeClasses[size],
+      weather.bgClass,
       className
-    )}>
-      {/* Animated background particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {Array.from({ length: currentWeather.particleCount }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              'absolute animate-bounce opacity-60',
-              currentWeather.animation
-            )}
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
-              animationDuration: `${2 + Math.random() * 3}s`,
-            }}
-          >
-            {currentWeather.particles}
-          </div>
-        ))}
-      </div>
+    )} style={dynamicBgStyle}>
+      {/* Weather Icon */}
+      <span 
+        className={cn(
+          'text-2xl relative z-10 weather-icon transition-all duration-500',
+          isDark && 'filter brightness-110'
+        )} 
+        data-animation={weather.animation}
+      >
+        {weather.icon}
+      </span>
+      
+      {/* Particle Effects (New) */}
+      {weather.particleEffect === 'rain' && Array.from({ length: weather.particleCount }).map((_, i) => (
+        <div 
+          key={i}
+          className="absolute w-0.5 h-3 bg-current animate-rain-fall"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDuration: `${1 + Math.random() * weather.particleSpeed}s`,
+            animationDelay: `-${Math.random() * 2}s`,
+            backgroundColor: weather.particleColor,
+            transform: `scaleY(${0.5 + Math.random() * 1.5}) rotate(25deg)`
+          }}
+        />
+      ))}
 
-      {/* Main weather icon */}
-      <div className="relative z-10 space-y-4">
+      {weather.particleEffect === 'sparkle' && Array.from({ length: weather.particleCount }).map((_, i) => (
+        <div 
+          key={i}
+          className="absolute w-1 h-1 rounded-full bg-current animate-sparkle-fade"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDuration: `${0.5 + Math.random() * weather.particleSpeed}s`,
+            animationDelay: `-${Math.random() * 1}s`,
+            backgroundColor: weather.particleColor,
+            boxShadow: `0 0 4px ${weather.particleColor}`
+          }}
+        />
+      ))}
+      
+      {/* Enhanced Animation Effects for Dark Mode */}
+      {emotionScale === 1 && (
         <div className={cn(
-          'text-6xl transition-transform duration-500',
-          isAnimating && 'scale-110 rotate-12'
-        )}>
-          {currentWeather.icon}
-        </div>
-        
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold">
-            {currentWeather.description}
-          </h3>
-          <p className="text-sm opacity-90">
-            Emotional intensity: {sentiment.emotion}/5
-          </p>
-          <div className="flex justify-center space-x-4 text-xs opacity-75">
-            <span>Sentiment: {(sentiment.score * 100).toFixed(0)}%</span>
-            <span>Confidence: {(sentiment.confidence * 100).toFixed(0)}%</span>
-          </div>
-        </div>
-      </div>
+          'absolute inset-0 storm-lightning',
+          isDark ? 'opacity-40' : 'opacity-30'
+        )} />
+      )}
+      
+      {emotionScale === 5 && (
+        <div className={cn(
+          'absolute inset-0 sun-glow',
+          isDark ? 'opacity-50' : 'opacity-40'
+        )} />
+      )}
 
-      {/* Weather overlay effects */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-20"
-        style={{
-          background: `linear-gradient(45deg, 
-            hsla(${currentWeather.hueShift}, 70%, 60%, 0.3), 
-            hsla(${currentWeather.hueShift + 30}, 70%, 70%, 0.1))`
-        }}
-      />
+      {/* Gentle outer glow for dark mode */}
+      {isDark && (
+        <div 
+          className="absolute inset-0 rounded-full transition-all duration-1000"
+          style={{
+            background: `radial-gradient(circle, ${
+              emotionScale >= 4 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'
+            } 0%, transparent 70%)`,
+            filter: 'blur(4px)'
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -1,48 +1,56 @@
-
 import { useState, useEffect } from 'react';
 
 export type Theme = 'light' | 'dark' | 'system';
 
 export const useTheme = () => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('healbit-theme');
-    return (saved as Theme) || 'system';
-  });
-
-  const [isDark, setIsDark] = useState(false);
+  const [theme, setTheme] = useState<Theme>('system');
 
   useEffect(() => {
-    const updateTheme = () => {
-      let effectiveTheme: 'light' | 'dark';
-      
-      if (theme === 'system') {
-        effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      } else {
-        effectiveTheme = theme;
-      }
+    // Get saved theme or default to system
+    const savedTheme = localStorage.getItem('healbit-theme') as Theme || 'system';
+    setTheme(savedTheme);
+    applyTheme(savedTheme);
+  }, []);
 
-      setIsDark(effectiveTheme === 'dark');
-      document.documentElement.setAttribute('data-theme', effectiveTheme);
-      
-      if (effectiveTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-
-    updateTheme();
-    localStorage.setItem('healbit-theme', theme);
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', updateTheme);
+  const applyTheme = (newTheme: Theme) => {
+    const root = document.documentElement;
     
-    return () => mediaQuery.removeEventListener('change', updateTheme);
+    if (newTheme === 'system') {
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.setAttribute('data-theme', systemPrefersDark ? 'dark' : 'light');
+    } else {
+      root.setAttribute('data-theme', newTheme);
+    }
+  };
+
+  const changeTheme = (newTheme: Theme) => {
+    setTheme(newTheme);
+    localStorage.setItem('healbit-theme', newTheme);
+    applyTheme(newTheme);
+  };
+
+  // Listen for system theme changes
+  useEffect(() => {
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = () => applyTheme('system');
+      
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
   }, [theme]);
+
+  const getCurrentTheme = (): 'light' | 'dark' => {
+    if (theme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return theme;
+  };
 
   return {
     theme,
-    setTheme,
-    isDark,
+    setTheme: changeTheme,
+    currentTheme: getCurrentTheme(),
+    isDark: getCurrentTheme() === 'dark'
   };
 };

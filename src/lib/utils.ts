@@ -1,11 +1,4 @@
-
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-import { MoodType } from '@/types/index';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { MoodType } from '../types/index';
 
 export const getMoodColorClass = (mood: MoodType) => {
   switch (mood) {
@@ -17,11 +10,11 @@ export const getMoodColorClass = (mood: MoodType) => {
       return "text-red-500";
     case "neutral":
       return "text-gray-500";
-    case "calm":
-      return "text-green-500";
-    case "hope":
-      return "text-purple-500";
     default:
       return "text-gray-500";
   }
 };
+
+export function cn(...inputs: (string | undefined)[]) {
+  return inputs.filter(Boolean).join(' ');
+}

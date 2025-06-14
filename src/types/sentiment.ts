@@ -1,22 +1,22 @@
-
 export type EmotionScale = 1 | 2 | 3 | 4 | 5;
 
 export interface SentimentData {
-  score: number;
-  confidence: number;
-  emotions: {
-    joy: number;
-    sadness: number;
-    anger: number;
-    fear: number;
-    surprise: number;
-    disgust: number;
-  };
-  emotionScale: EmotionScale;
+  score: EmotionScale;
+  trend: 'improving' | 'stable' | 'declining';
+  weeklyAverage: number;
+  message: string;
 }
 
-export interface WeatherMood {
-  type: 'storm' | 'overcast' | 'clearing' | 'sunny';
-  intensity: number;
+export interface AvatarEvolution {
+  complexity: number; // 0-1 based on entryCount
+  emotionalState: number; // 0-1 based on mood average
+  openness: number; // 0-1 based on recent trends
+  glowIntensity: number; // 0-1 based on consistency
+}
+
+export interface WeatherState {
+  type: 'storm' | 'heavyRain' | 'cloudy' | 'partlySunny' | 'sunny';
+  label: string;
+  icon: string;
   description: string;
 }

@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import { Renderer, Program, Mesh, Triangle, Vec3 } from 'ogl';
 import { EmotionScale } from '@/types/sentiment';
@@ -257,8 +256,8 @@ const ThreeDWeatherScene: React.FC<ThreeDWeatherSceneProps> = ({
       program.uniforms.uEmotionScale.value = emotionScale;
       program.uniforms.uIsDark.value = isDark ? 1.0 : 0.0;
       
-      // Set mood color based on mood type with proper type safety
-      const moodColors: Record<MoodType, Vec3> = {
+      // Set mood color based on mood type
+      const moodColors = {
         joy: new Vec3(1.0, 0.8, 0.2),
         calm: new Vec3(0.2, 0.6, 0.8),
         hope: new Vec3(0.4, 0.8, 0.4),
@@ -267,7 +266,7 @@ const ThreeDWeatherScene: React.FC<ThreeDWeatherSceneProps> = ({
         anger: new Vec3(0.8, 0.3, 0.3)
       };
       
-      program.uniforms.uMoodColor.value = moodColors[mood];
+      program.uniforms.uMoodColor.value = moodColors[mood] || moodColors.neutral;
       
       renderer.render({ scene: mesh });
       animationId = requestAnimationFrame(animate);

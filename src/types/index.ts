@@ -1,32 +1,53 @@
 
-export type MoodType = 'joy' | 'sadness' | 'anger' | 'neutral' | 'calm' | 'hope';
+export type MoodType = 'joy' | 'calm' | 'hope' | 'sadness' | 'anger' | 'neutral';
+
+export interface DailyPrompt {
+  id: string;
+  category: 'gratitude' | 'self-compassion' | 'growth' | 'reflection' | 'hope' | 'processing' | 'strength';
+  text: string;
+  followUp?: string;
+}
 
 export interface JournalEntry {
   id: string;
-  timestamp: Date;
+  date: string;
+  promptId: string;
+  audioUrl?: string;
   audioBlob?: Blob;
-  transcript: string;
+  transcript?: string;
+  transcriptConfidence?: number;
   mood: MoodType;
-  tags: string[];
-  sentiment?: {
-    score: number;
-    confidence: number;
-  };
+  emotions: string[];
+  duration: number;
+  processingComplete: boolean;
+  hasAudio: boolean;
+}
+
+export interface Affirmation {
+  id: string;
+  mood: MoodType;
+  text: string;
+  category: string;
+}
+
+export interface AvatarPreferences {
+  primaryColor: string;
+  animationStyle: 'gentle' | 'vibrant' | 'minimal';
+  size: 'sm' | 'md' | 'lg';
 }
 
 export interface UserProfile {
-  name: string;
-  joinDate: Date;
-  avatarSettings: {
-    primaryColor: string;
-    secondaryColor: string;
-    style: string;
-  };
+  name?: string;
+  avatar: AvatarPreferences;
+  joinDate: string;
+  totalEntries: number;
+  currentStreak: number;
+  longestStreak: number;
 }
 
-export interface AppSettings {
-  theme: 'light' | 'dark' | 'system';
-  soundEnabled: boolean;
-  microphonePermission: boolean;
-  dataRetentionDays: number;
+export interface HealingProgress {
+  date: string;
+  mood: MoodType;
+  entryCount: number;
+  notes?: string;
 }

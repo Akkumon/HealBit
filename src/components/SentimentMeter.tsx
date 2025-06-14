@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -59,13 +58,6 @@ const SentimentMeter: React.FC<SentimentMeterProps> = ({ sentimentData }) => {
     }
   };
 
-  const mockSentiment = {
-    emotion: sentimentData.score,
-    score: sentimentData.weeklyAverage / 5,
-    magnitude: 0.8,
-    confidence: 0.9
-  };
-
   return (
     <Card className={cn(
       'border-primary/20 transition-all duration-300',
@@ -76,7 +68,7 @@ const SentimentMeter: React.FC<SentimentMeterProps> = ({ sentimentData }) => {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center justify-between">
           <span>Your Emotional Weather</span>
-          <WeatherAnimation sentiment={mockSentiment} />
+          <WeatherAnimation emotionScale={sentimentData.score} size="sm" />
         </CardTitle>
         <CardDescription>
           Weekly emotional climate overview
@@ -86,7 +78,7 @@ const SentimentMeter: React.FC<SentimentMeterProps> = ({ sentimentData }) => {
         {/* Weather Score */}
         <div className="flex items-center justify-between">
           <div className="text-center">
-            <WeatherAnimation sentiment={mockSentiment} />
+            <WeatherAnimation emotionScale={sentimentData.score} size="lg" />
             <p className="text-sm text-muted-foreground mt-2">Current</p>
           </div>
           
