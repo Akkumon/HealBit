@@ -27,6 +27,7 @@ const PostRecordingFlow: React.FC<PostRecordingFlowProps> = ({
   const [currentMood] = useState<MoodType>('neutral');
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [editedTranscript, setEditedTranscript] = useState(transcript);
 
   React.useEffect(() => {
     if (audioBlob) {
@@ -35,6 +36,10 @@ const PostRecordingFlow: React.FC<PostRecordingFlowProps> = ({
       return () => URL.revokeObjectURL(url);
     }
   }, [audioBlob]);
+
+  React.useEffect(() => {
+    setEditedTranscript(transcript);
+  }, [transcript]);
 
   const handlePlayback = () => {
     if (audioUrl) {
@@ -82,14 +87,11 @@ const PostRecordingFlow: React.FC<PostRecordingFlowProps> = ({
           )}
           
           <TranscriptDisplay 
-            transcript={transcript}
+            transcript={editedTranscript}
+            confidence={0.9}
+            isProcessing={isTranscribing}
+            onTranscriptChange={setEditedTranscript}
           />
-          
-          {isTranscribing && (
-            <div className="text-sm text-muted-foreground">
-              Converting speech to text...
-            </div>
-          )}
         </CardContent>
       </Card>
 
