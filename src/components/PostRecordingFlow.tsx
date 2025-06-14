@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mic, MicOff, Play, Pause, RotateCcw } from 'lucide-react';
+import { Mic, Play, Pause } from 'lucide-react';
 import EmotionTagSelector from './EmotionTagSelector';
 import TranscriptDisplay from './TranscriptDisplay';
 import { MoodType } from '@/types';
@@ -13,7 +13,6 @@ interface PostRecordingFlowProps {
   transcript: string;
   isTranscribing: boolean;
   onSave: (tags: string[], mood: MoodType) => void;
-  onStartOver: () => void;
   className?: string;
 }
 
@@ -25,7 +24,7 @@ const PostRecordingFlow: React.FC<PostRecordingFlowProps> = ({
   className
 }) => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [currentMood, setCurrentMood] = useState<MoodType>('neutral');
+  const [currentMood] = useState<MoodType>('neutral');
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
@@ -84,7 +83,7 @@ const PostRecordingFlow: React.FC<PostRecordingFlowProps> = ({
           
           <TranscriptDisplay 
             transcript={transcript}
-            isLoading={isTranscribing}
+            isTranscribing={isTranscribing}
           />
         </CardContent>
       </Card>

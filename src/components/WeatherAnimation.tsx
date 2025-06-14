@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { EmotionScale } from '@/types/sentiment';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/hooks/useTheme';
-import { MoodType } from '@/types';
 
 interface WeatherAnimationProps {
   sentiment: {
@@ -77,7 +76,7 @@ const WeatherAnimation: React.FC<WeatherAnimationProps> = ({
     }
   } as const;
 
-  const currentWeather = weatherStates[sentiment.emotion as keyof typeof weatherStates];
+  const currentWeather = weatherStates[sentiment.emotion];
 
   return (
     <div className={cn(

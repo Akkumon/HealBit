@@ -1,17 +1,16 @@
 
-// Sentiment analysis types
 export type EmotionScale = 1 | 2 | 3 | 4 | 5;
 
 export interface SentimentData {
-  score: number; // -1 to 1
-  magnitude: number; // 0 to 1
-  emotion: EmotionScale;
-  confidence: number; // 0 to 1
+  score: EmotionScale;
+  trend: 'improving' | 'stable' | 'declining';
+  weeklyAverage: number;
+  message: string;
 }
 
-export interface EmotionAnalysis {
-  primary: string;
-  secondary?: string;
-  intensity: EmotionScale;
-  sentiment: SentimentData;
+export interface SentimentAnalysis {
+  emotion: EmotionScale;
+  score: number;
+  magnitude: number;
+  confidence: number;
 }
