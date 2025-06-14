@@ -28,7 +28,15 @@ const WeatherAnimation: React.FC<WeatherAnimationProps> = ({
   }, [sentiment]);
 
   // Weather states based on emotion scale
-  const weatherStates = {
+  const weatherStates: Record<EmotionScale, {
+    icon: string;
+    bgClass: string;
+    animation: string;
+    description: string;
+    particles: string;
+    particleCount: number;
+    hueShift: number;
+  }> = {
     1: {
       icon: '⛈️',
       bgClass: isDark ? 'from-gray-800 to-gray-900' : 'from-gray-700 to-gray-900',
@@ -74,7 +82,7 @@ const WeatherAnimation: React.FC<WeatherAnimationProps> = ({
       particleCount: 25,
       hueShift: 60
     }
-  } as const;
+  };
 
   const currentWeather = weatherStates[sentiment.emotion];
 

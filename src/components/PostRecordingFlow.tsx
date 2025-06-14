@@ -83,8 +83,13 @@ const PostRecordingFlow: React.FC<PostRecordingFlowProps> = ({
           
           <TranscriptDisplay 
             transcript={transcript}
-            isTranscribing={isTranscribing}
           />
+          
+          {isTranscribing && (
+            <div className="text-sm text-muted-foreground">
+              Converting speech to text...
+            </div>
+          )}
         </CardContent>
       </Card>
 
